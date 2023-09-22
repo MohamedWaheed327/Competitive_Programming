@@ -7,10 +7,9 @@ ll n, q, SQ, res;
 
 class query
 {
-private:
+public:
     ll l, r, Qind, Bind;
 
-public:
     query() {}
     query(ll l, ll r, ll Qind)
     {
@@ -19,6 +18,7 @@ public:
         this->Qind = Qind;
         Bind = l / SQ;
     }
+
     bool operator<(query x)
     {
         if (Bind != x.Bind)
@@ -44,6 +44,15 @@ void MO_process()
     ll r = 0, l = 1;
     for (ll i = 0; i < q; i++)
     {
+        while (r > Q[i].r)
+            remove(r--);
+        while (r < Q[i].r)
+            add(++r);
+        while (l > Q[i].l)
+            add(--l);
+        while (l < Q[i].l)
+            remove(l++);
+        ans[Q[i].Qind] = res;
     }
 }
 
