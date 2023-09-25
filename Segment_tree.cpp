@@ -2,9 +2,8 @@
 #include <bits/stdc++.h>
 #define ll long long
 using namespace std;
-class segment_tree // 1 index
+struct segment_tree // 1 index
 {
-public:
     ll size = 1, SKIP = 0;
     vector<ll> seg, buildseg;
 
