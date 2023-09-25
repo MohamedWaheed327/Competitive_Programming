@@ -77,8 +77,8 @@ public:
 
 void Main()
 {
-    ll n, q;
-    cin >> n >> q;
+    ll n;
+    cin >> n;
     vector<ll> v(n);
     for (auto &it : v)
         cin >> it;
@@ -86,6 +86,8 @@ void Main()
     segment_tree st;
     st.build(v);
 
+    ll q;
+    cin >> q;
     while (q--)
     {
         ll op;
@@ -94,13 +96,13 @@ void Main()
         {
             ll indx, val;
             cin >> indx >> val;
-            st.update(++indx, val);
+            st.update(indx, val);
         }
         else
         {
             ll l, r;
             cin >> l >> r;
-            cout << st.query(++l, r) << "\n";
+            cout << st.query(l, r) << "\n";
         }
     }
 }
