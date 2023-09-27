@@ -5,9 +5,8 @@ using namespace std;
 
 ll n, q, SQ, res;
 
-class query
+struct query
 {
-public:
     ll l, r, Qind, Bind;
 
     query() {}
@@ -59,7 +58,7 @@ void MO_process()
 void Main()
 {
     cin >> n >> q;
-    SQ = sqrt(n) + 1;
+    SQ = sqrt(n);
     ans.clear(), ans.resize(q, 0);
     v.clear(), v.resize(n, 0);
     Q.clear(), Q.resize(q);
