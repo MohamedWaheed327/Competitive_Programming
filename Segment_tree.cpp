@@ -2,6 +2,7 @@
 #include <bits/stdc++.h>
 #define ll long long
 using namespace std;
+
 struct segment_tree // 1 index
 {
     ll size = 1, SKIP = 0;
@@ -26,7 +27,7 @@ struct segment_tree // 1 index
         seg[x] = merge(seg[2 * x + 1], seg[2 * x + 2]);
     }
 
-    void build(vector<ll> a)
+    segment_tree(vector<ll> a)
     {
         buildseg = a;
         while (size < a.size())
@@ -82,8 +83,7 @@ void Main()
     for (auto &it : v)
         cin >> it;
 
-    segment_tree st;
-    st.build(v);
+    segment_tree st(v);
 
     ll q;
     cin >> q;
@@ -101,7 +101,7 @@ void Main()
         {
             ll l, r;
             cin >> l >> r;
-            cout << st.query(l, r) << "\n";
+            cout << st.query(l, r) << '\n';
         }
     }
 }
