@@ -7,21 +7,21 @@ ll n, q, SQ, res;
 
 struct query
 {
-    ll l, r, Qind, Bind;
+    ll l, r, q_indx, b_indx;
 
     query() {}
-    query(ll l, ll r, ll Qind)
+    query(ll l, ll r, ll q_ind)
     {
         this->l = l - 1;
         this->r = r - 1;
-        this->Qind = Qind;
-        Bind = l / SQ;
+        this->q_ind = q_indx;
+        b_indx = l / SQ;
     }
 
     bool operator<(query x)
     {
-        if (Bind != x.Bind)
-            return Bind < x.Bind;
+        if (b_indx != x.b_indx)
+            return b_indx < x.b_indx;
         return r < x.r;
     }
 };
@@ -51,7 +51,7 @@ void MO_process()
             add(--l);
         while (l < Q[i].l)
             remove(l++);
-        ans[Q[i].Qind] = res;
+        ans[Q[i].q_indx] = res;
     }
 }
 
