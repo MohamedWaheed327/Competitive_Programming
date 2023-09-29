@@ -8,12 +8,12 @@ struct segment_tree // 1 index
 private:
     struct node
     {
-        ll mn = LLONG_MAX, mn_num = 1, gc = 0;
-        node() {}
+        ll mn, mx;
+        node() { mn = LLONG_MAX, mx = LLONG_MIN; }
         node(ll x)
         {
             mn = x;
-            gc = x;
+            mx = x;
         }
     };
 
@@ -25,20 +25,8 @@ private:
     node merge(node a, node b)
     {
         node ret;
-        if (a.mn == b.mn)
-        {
-            ret.mn = a.mn;
-            ret.mn_num = a.mn_num + b.mn_num;
-        }
-        else if (a.mn < b.mn)
-        {
-            ret = a;
-        }
-        else
-        {
-            ret = b;
-        }
-        ret.gc = gcd(a.gc, b.gc);
+        ret.mn = min(a.mn, b.mn);
+        ret.mx = max(a.mx, b.mx);
         return ret;
     }
 
@@ -121,11 +109,7 @@ void Main()
     {
         ll l, r;
         cin >> l >> r;
-        auto a = st.query(l, r);
-        if (a.gc == a.mn)
-            cout << r - l + 1 - a.mn_num << '\n';
-        else
-            cout << r - l + 1 << '\n';
+        cout << st.query(l, r).mn << " " << st.query(l, r).mx << '\n';
     }
 }
 /*
