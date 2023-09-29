@@ -10,11 +10,11 @@ struct query
     ll l, r, q_indx, b_indx;
 
     query() {}
-    query(ll l, ll r, ll q_ind)
+    query(ll l, ll r, ll q_indx)
     {
         this->l = l - 1;
         this->r = r - 1;
-        this->q_ind = q_indx;
+        this->q_indx = q_indx;
         b_indx = l / SQ;
     }
 
