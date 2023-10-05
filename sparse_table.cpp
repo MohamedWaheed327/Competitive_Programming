@@ -12,7 +12,7 @@ private:
 
     ll merge(ll a, ll b)
     {
-        return max(a, b);
+        return max(a, b); // min , max , gcd , lcm , sum
     }
 
     void preCount()
