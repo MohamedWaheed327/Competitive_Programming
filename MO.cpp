@@ -3,82 +3,105 @@
 #define ll long long
 using namespace std;
 
-ll n, q, SQ, res;
-
-struct query
+class MO // 1 index
 {
-    ll l, r, q_indx, b_indx;
-
-    query() {}
-    query(ll l, ll r, ll q_indx)
+private:
+    struct query
     {
-        this->l = l - 1;
-        this->r = r - 1;
-        this->q_indx = q_indx;
-        b_indx = l / SQ;
+        ll l, r, q_indx, b_indx;
+        query() {}
+        query(ll l, ll r, ll q_indx, ll b_indx)
+        {
+            this->l = l;
+            this->r = r;
+            this->q_indx = q_indx;
+            this->b_indx = b_indx;
+        }
+        bool operator<(query x)
+        {
+            if (b_indx != x.b_indx)
+                return b_indx < x.b_indx;
+            return r < x.r;
+        }
+    };
+
+    ll q = 0, SQ;
+    vector<ll> v;
+    vector<query> Q;
+
+    ll res = 0;
+    vector<ll> freq = vector<ll>(1e6 + 1, 0);
+    void add(ll ind)
+    {
+        if (!freq[v[ind]])
+            res++;
+        freq[v[ind]]++;
+    }
+    void remove(ll ind)
+    {
+        freq[v[ind]]--;
+        if (!freq[v[ind]])
+            res--;
     }
 
-    bool operator<(query x)
+public:
+    MO(vector<ll> a)
     {
-        if (b_indx != x.b_indx)
-            return b_indx < x.b_indx;
-        return r < x.r;
+        v = a;
+        SQ = sqrt(a.size());
+    }
+
+    void add_query(ll l, ll r)
+    {
+        l--, r--;
+        Q.push_back(query(l, r, q++, l / SQ));
+    }
+
+    void mo_process()
+    {
+        vector<ll> ans(q, 0);
+
+        sort(Q.begin(), Q.end());
+        ll r = 0, l = 1;
+        for (ll i = 0; i < q; i++)
+        {
+            while (r > Q[i].r)
+                remove(r--);
+            while (r < Q[i].r)
+                add(++r);
+            while (l > Q[i].l)
+                add(--l);
+            while (l < Q[i].l)
+                remove(l++);
+            ans[Q[i].q_indx] = res;
+        }
+
+        for (ll i = 0; i < q; i++)
+        {
+            cout << ans[i] << "\n "[i == q - 1];
+        }
     }
 };
 
-vector<query> Q;
-vector<ll> v, ans;
-
-void add(ll ind)
-{
-}
-
-void remove(ll ind)
-{
-}
-
-void MO_process()
-{
-    sort(Q.begin(), Q.end());
-    ll r = 0, l = 1;
-    for (ll i = 0; i < q; i++)
-    {
-        while (r > Q[i].r)
-            remove(r--);
-        while (r < Q[i].r)
-            add(++r);
-        while (l > Q[i].l)
-            add(--l);
-        while (l < Q[i].l)
-            remove(l++);
-        ans[Q[i].q_indx] = res;
-    }
-}
-
 void Main()
 {
-    cin >> n >> q;
-    SQ = sqrt(n);
-    ans.clear(), ans.resize(q, 0);
-    v.clear(), v.resize(n, 0);
-    Q.clear(), Q.resize(q);
-
+    ll n;
+    cin >> n;
+    vector<ll> v(n);
     for (auto &it : v)
         cin >> it;
 
-    for (ll i = 0; i < q; i++)
+    MO m(v);
+
+    ll q;
+    cin >> q;
+    while (q--)
     {
         ll l, r;
         cin >> l >> r;
-        Q[i] = query(l, r, i);
+        m.add_query(l, r); // number of distinct elements form l to r
     }
-
-    MO_process();
-
-    for (ll i = 0; i < q; i++)
-    {
-        cout << ans[i] << '\n';
-    }
+    m.mo_process();
 }
 /*
 
