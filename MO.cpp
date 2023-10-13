@@ -53,8 +53,7 @@ public:
 
     void add_query(ll l, ll r)
     {
-        l--, r--;
-        Q.push_back(query(l, r, q++, l / SQ));
+        Q.push_back(query(--l, --r, q++, l / SQ));
     }
 
     void mo_process()
