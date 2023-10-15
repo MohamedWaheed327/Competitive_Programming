@@ -3,7 +3,7 @@
 #define ll long long
 using namespace std;
 
-struct SQblocks // 1 index
+class SQblocks // 1 index
 {
 private:
     ll SQ;
