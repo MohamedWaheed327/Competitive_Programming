@@ -3,7 +3,7 @@
 #define ll long long
 using namespace std;
 
-struct sparse_table // 1 index
+class sparse_table // 1 index
 {
 private:
     ll n;
