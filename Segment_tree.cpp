@@ -3,7 +3,7 @@
 #define ll long long
 using namespace std;
 
-struct segment_tree // 1 index
+class segment_tree // 1 index
 {
 private:
     struct node
