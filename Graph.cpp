@@ -8,6 +8,7 @@ class graph
 private:
     ll N;
     vector<ll> vis;
+    vector<ll> comp;
     vector<ll> is_cyclic;
     vector<ll> num_of_edges;
     vector<vector<pair<ll, ll>>> g;
@@ -69,6 +70,34 @@ public:
         do_dfs(node);
     }
 
+    void components()
+    {
+        ll key = 0;
+        vis.assign(N, 0);
+        auto check = [&](auto self, ll node)
+        {
+            if (vis[node])
+                return;
+            comp[node] = key;
+            vis[node] = 1;
+            for (auto it : g[node])
+            {
+                if (!vis[it.first])
+                {
+                    self(self, it.first);
+                }
+            }
+        };
+        for (ll i = 0; i < N; i++)
+        {
+            if (!vis[i])
+            {
+                check(check, i);
+                key++;
+            }
+        }
+    }
+
     vector<ll> is_on_cycle()
     {
         auto check = [&](auto self, ll node)
@@ -104,13 +133,13 @@ public:
     vector<ll> dijkstra(ll start)
     {
         vis.assign(N, 0);
-        multiset<pair<ll, ll>> s;
+        priority_queue<pair<ll, ll>, vector<pair<ll, ll>>, greater<pair<ll, ll>>> pq;
         vector<ll> cheapest_path(N);
-        s.insert({0, start});
-        while (s.size())
+        pq.push({0, start});
+        while (pq.size())
         {
-            ll cost = s.begin()->first, node = s.begin()->second;
-            s.erase(s.begin());
+            ll cost = pq.top().first, node = pq.top().second;
+            pq.pop();
             if (vis[node])
                 continue;
             vis[node] = 1;
@@ -119,7 +148,7 @@ public:
             {
                 if (!vis[a])
                 {
-                    s.insert({b + cost, a});
+                    pq.push({b + cost, a});
                 }
             }
         }
@@ -129,21 +158,6 @@ public:
 
 void Main()
 {
-    ll n, a, b;
-    cin >> n >> a >> b;
-    graph g(n);
-
-    for (ll i = 1; i <= n; i++)
-    {
-        ll u, v;
-        cin >> u >> v;
-        g.add_edge(u, v);
-        g.add_edge(v, u);
-    }
-
-    auto a_dis = g.bfs(a);
-    auto b_dis = g.bfs(b);
-    auto is_cyclic = g.is_on_cycle();
 }
 /*
 
