@@ -3,36 +3,39 @@
 #define ll long long
 using namespace std;
 
+template <class T>
 class segment_tree // 1 index
 {
 private:
     struct node
     {
-        ll mn, mx;
-        node() { mn = LLONG_MAX, mx = LLONG_MIN; }
-        node(ll x)
+        ll skip = 0;
+        node() { skip = 1; }
+
+        node(T x)
         {
-            mn = x;
-            mx = x;
         }
     };
 
     ll size = 1;
-    node SKIP;
     vector<node> seg;
-    vector<ll> buildseg;
+    vector<T> buildseg;
 
     node merge(node a, node b)
     {
+        if (a.skip)
+            return b;
+        if (b.skip)
+            return a;
         node ret;
-        ret.mn = min(a.mn, b.mn);
-        ret.mx = max(a.mx, b.mx);
+        ret.skip = 0;
+
         return ret;
     }
 
     void build(ll x, ll lx, ll rx)
     {
-        if (rx - lx == 1)
+        if (rx - lx == 0)
         {
             if (lx < buildseg.size())
                 seg[x] = node(buildseg[lx]);
@@ -40,29 +43,29 @@ private:
         }
         ll m = (lx + rx) / 2;
         build(2 * x + 1, lx, m);
-        build(2 * x + 2, m, rx);
+        build(2 * x + 2, m + 1, rx);
         seg[x] = merge(seg[2 * x + 1], seg[2 * x + 2]);
     }
 
-    void update(ll ind, ll value, ll x, ll lx, ll rx)
+    void update(ll ind, T value, ll x, ll lx, ll rx)
     {
-        if (rx - lx == 1)
+        if (rx - lx == 0)
         {
             seg[x] = node(value);
             return;
         }
         ll m = (lx + rx) / 2;
-        if (ind < m)
+        if (ind <= m)
             update(ind, value, 2 * x + 1, lx, m);
         else
-            update(ind, value, 2 * x + 2, m, rx);
+            update(ind, value, 2 * x + 2, m + 1, rx);
         seg[x] = merge(seg[2 * x + 1], seg[2 * x + 2]);
     }
 
     node query(ll l, ll r, ll x, ll lx, ll rx)
     {
         if (l > rx || r < lx)
-            return SKIP;
+            return node();
         if (l <= lx && rx <= r)
             return seg[x];
         ll m = (lx + rx) / 2;
@@ -72,18 +75,18 @@ private:
     }
 
 public:
-    segment_tree(vector<ll> a)
+    segment_tree(vector<T> a)
     {
         buildseg = a;
         while (size < a.size())
             size *= 2;
-        seg.assign(2 * size, SKIP);
-        build(0, 0, size);
+        seg.assign(2 * size, node());
+        build(0, 0, size - 1);
     }
 
-    void update(ll ind, ll value)
+    void update(ll ind, T value)
     {
-        update(--ind, value, 0, 0, size);
+        update(--ind, value, 0, 0, size - 1);
         buildseg[ind] = value;
     }
 
@@ -95,24 +98,11 @@ public:
 
 void Main()
 {
-    ll n;
-    cin >> n;
-    vector<ll> v(n);
-    for (auto &it : v)
-        cin >> it;
-
-    segment_tree st(v);
-
-    ll q;
-    cin >> q;
-    while (q--)
-    {
-        ll l, r;
-        cin >> l >> r;
-        cout << st.query(l, r).mn << " " << st.query(l, r).mx << '\n';
-    }
 }
 /*
+
+
+
 
 
 
