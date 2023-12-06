@@ -74,6 +74,28 @@ private:
         return merge(s1, s2);
     }
 
+    class proxy
+    {
+    public:
+        ll ind;
+        segment_tree *st;
+        proxy(segment_tree *a = 0, ll i = 0)
+        {
+            st = a;
+            ind = i;
+        }
+        proxy &operator=(ll val)
+        {
+            st->update(ind, ind, val);
+            st->buildseg[ind] = val;
+            return *this;
+        }
+        operator T()
+        {
+            return st->buildseg[ind];
+        }
+    };
+
 public:
     segment_tree(vector<T> a)
     {
@@ -86,7 +108,13 @@ public:
 
     void update(ll ind, T value)
     {
+        buildseg[ind] = val;
         update(ind, value, 0, 0, size - 1);
+    }
+
+    proxy operator[](ll ind)
+    {
+        return proxy(this, ind);
     }
 
     node query(ll l, ll r)
