@@ -4,7 +4,7 @@
 using namespace std;
 
 template <class T>
-class segment_tree // 1 index
+class segment_tree
 {
 private:
     struct node
@@ -86,13 +86,12 @@ public:
 
     void update(ll ind, T value)
     {
-        update(--ind, value, 0, 0, size - 1);
-        buildseg[ind] = value;
+        update(ind, value, 0, 0, size - 1);
     }
 
     node query(ll l, ll r)
     {
-        return query(--l, --r, 0, 0, size - 1);
+        return query(l, r, 0, 0, size - 1);
     }
 };
 
