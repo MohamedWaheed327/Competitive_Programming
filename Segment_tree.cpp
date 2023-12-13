@@ -108,7 +108,7 @@ public:
 
     void update(ll ind, T value)
     {
-        buildseg[ind] = val;
+        buildseg[ind] = value;
         update(ind, value, 0, 0, size - 1);
     }
 
