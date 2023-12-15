@@ -3,37 +3,41 @@
 #define ll long long
 using namespace std;
 
+template <class T>
 class segment_tree
 {
 private:
     struct node
     {
+        ll skip = 0;
+        node() { skip = 1; }
+
         ll mx;
-        node()
-        {
-            mx = LLONG_MIN;
-        }
-        node(ll x)
+        node(T x)
         {
             mx = x;
         }
     };
 
     ll size = 1;
-    node SKIP;
     vector<node> seg;
-    vector<ll> buildseg;
+    vector<T> buildseg;
 
     node merge(node a, node b)
     {
+        if (a.skip)
+            return b;
+        if (b.skip)
+            return a;
         node ret;
+        ret.skip = 0;
         ret.mx = max(a.mx, b.mx);
         return ret;
     }
 
     void build(ll x, ll lx, ll rx)
     {
-        if (rx - lx == 1)
+        if (lx == rx)
         {
             if (lx < buildseg.size())
                 seg[x] = node(buildseg[lx]);
@@ -41,29 +45,29 @@ private:
         }
         ll m = (lx + rx) / 2;
         build(2 * x + 1, lx, m);
-        build(2 * x + 2, m, rx);
+        build(2 * x + 2, m + 1, rx);
         seg[x] = merge(seg[2 * x + 1], seg[2 * x + 2]);
     }
 
-    void update(ll ind, ll value, ll x, ll lx, ll rx)
+    void update(ll ind, T value, ll x, ll lx, ll rx)
     {
-        if (rx - lx == 1)
+        if (lx == rx)
         {
             seg[x] = node(value);
             return;
         }
         ll m = (lx + rx) / 2;
-        if (ind < m)
+        if (ind <= m)
             update(ind, value, 2 * x + 1, lx, m);
         else
-            update(ind, value, 2 * x + 2, m, rx);
+            update(ind, value, 2 * x + 2, m + 1, rx);
         seg[x] = merge(seg[2 * x + 1], seg[2 * x + 2]);
     }
 
     node query(ll l, ll r, ll x, ll lx, ll rx)
     {
         if (l > rx || r < lx)
-            return SKIP;
+            return node();
         if (l <= lx && rx <= r)
             return seg[x];
         ll m = (lx + rx) / 2;
@@ -72,26 +76,52 @@ private:
         return merge(s1, s2);
     }
 
+    class proxy
+    {
+    public:
+        ll ind;
+        segment_tree *st;
+        proxy(segment_tree *a = 0, ll i = 0)
+        {
+            st = a;
+            ind = i;
+        }
+        proxy &operator=(ll val)
+        {
+            st->update(ind, val);
+            st->buildseg[ind] = val;
+            return *this;
+        }
+        operator T()
+        {
+            return st->buildseg[ind];
+        }
+    };
+
 public:
-    segment_tree(vector<ll> a)
+    segment_tree(vector<T> a)
     {
         buildseg = a;
         while (size < a.size())
             size *= 2;
-        seg.assign(2 * size, SKIP);
-        build(0, 0, size);
+        seg.assign(2 * size, node());
+        build(0, 0, size - 1);
     }
 
-    void update(ll ind, ll value)
+    void update(ll ind, T value)
     {
-        update(ind, value, 0, 0, size);
         buildseg[ind] = value;
+        update(ind, value, 0, 0, size - 1);
+    }
+
+    proxy operator[](ll ind)
+    {
+        return proxy(this, ind);
     }
 
     ll query(ll l, ll r)
     {
-        if (r < l)
-            return 0;
+        if(l > r) return 0;
         return query(l, r, 0, 0, size - 1).mx;
     }
 };
