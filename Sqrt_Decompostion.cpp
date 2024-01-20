@@ -3,56 +3,53 @@
 #define ll long long
 using namespace std;
 
-class SQblocks // 1 index
-{
+class SQblocks {
 private:
-    ll SQ;
+    ll ans(const vector<ll> &blk) {
+        return blk[0];
+    }
+
+    int SQ;
     vector<ll> v;
     vector<vector<ll>> block;
 
-    void sqdecompostion()
-    {
-        for (ll i = 0; i < v.size(); i++)
-        {
+public:
+    SQblocks(const vector<ll> &v) {
+        SQ = sqrt(v.size()) + 1;
+        this->v = v;
+        block.resize(SQ);
+        for (int i = 0; i < v.size(); i++) {
             block[i / SQ].push_back(v[i]);
         }
-        for (ll i = 0; i < SQ; i++)
-        {
-            sort(block[i].begin(), block[i].end());
+        for (auto &it : block) {
+            sort(it.begin(), it.end());
         }
     }
 
-public:
-    SQblocks(vector<ll> a)
-    {
-        SQ = sqrt(a.size()) + 1;
-        v = a;
-        block.resize(SQ);
-        sqdecompostion();
+    void update(int ind, ll val) {
+        auto &blk = block[ind / SQ];
+        int it = lower_bound(blk.begin(), blk.end(), v[ind]) - blk.begin();
+        v[ind] = blk[it] = val;
+
+        while (0 < it && blk[it - 1] > blk[it]) {
+            swap(blk[it - 1], blk[it]);
+            --it;
+        }
+        while (it + 1 < blk.size() && blk[it] > blk[it + 1]) {
+            swap(blk[it], blk[it + 1]);
+            ++it;
+        }
     }
 
-    void update(ll ind, ll val)
-    {
-        ind--;
-        ll it = lower_bound(block[ind / SQ].begin(), block[ind / SQ].end(), v[ind]) - block[ind / SQ].begin();
-        block[ind / SQ][it] = val;
-        sort(block[ind / SQ].begin(), block[ind / SQ].end());
-        v[ind] = val;
-    }
-
-    ll query(ll l, ll r)
-    {
-        l--, r--;
+    ll query(int l, int r) {
         ll ret = LLONG_MAX;
-        while (l <= r)
-        {
-            if (l % SQ || r - l < SQ)
-            {
-                ret = min(ret, v[l++]);
+        while (l <= r) {
+            if (l % SQ || r - l < SQ) {
+                ret = min(ret, ans({v[l]}));
+                l += 1;
             }
-            else
-            {
-                ret = min(ret, block[l / SQ][0]);
+            else {
+                ret = min(ret, ans(block[l / SQ]));
                 l += SQ;
             }
         }
@@ -60,31 +57,28 @@ public:
     }
 };
 
-void Main()
-{
-    ll n, q;
+void Main() {
+    int n, q;
     cin >> n >> q;
+
     vector<ll> v(n);
-    for (auto &it : v)
-        cin >> it;
+    for (ll i = 0; i < n; ++i) {
+        cin >> v[i];
+    }
 
-    SQblocks s(v);
-
-    while (q--)
-    {
+    SQblocks sq(v);
+    while (q--) {
         ll op;
         cin >> op;
-        if (op == 1)
-        {
-            ll ind, val;
-            cin >> ind >> val;
-            s.update(ind, val);
+        if (op == 1) {
+            ll ind, v;
+            cin >> ind >> v;
+            sq.update(ind, v);
         }
-        else
-        {
+        else {
             ll l, r;
             cin >> l >> r;
-            cout << s.query(l, r) << '\n';
+            cout << sq.query(l, --r) << '\n';
         }
     }
 }
@@ -95,17 +89,11 @@ void Main()
 
 
 */
-signed main()
-{
+signed main() {
     ios_base::sync_with_stdio(false), cout.tie(NULL), cin.tie(NULL);
-#ifndef ONLINE_JUDGE
-    freopen("input.txt", "r", stdin);
-    freopen("output.txt", "w", stdout);
-#endif
     ll T = 1;
     // cin >> T;
-    for (ll i = 1; i <= T; i++)
-    {
+    for (ll i = 1; i <= T; i++) {
         Main();
         cout << '\n';
     }
