@@ -39,7 +39,7 @@ ostream &operator<<(ostream &out, i128 x) {
 void Main() {
     i128 x = 0, y = 0;
     cin >> x >> y;
-    cout << x << y;
+    cout << x + y;
 }
 /*
 
