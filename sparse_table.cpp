@@ -3,57 +3,48 @@
 #define ll long long
 using namespace std;
 
-class sparse_table // 1 index
-{
+class sparse_table {
 private:
-    ll n;
-    vector<ll> v, LOG;
-    vector<vector<ll>> dp;
+    struct node {
+        int mx;
 
-    ll merge(ll a, ll b)
-    {
-        return max(a, b); // min , max , gcd , lcm , sum
+        void operator=(int val) {
+            mx = val;
+        }
+    };
+
+    node merge(const node &a, const node &b) const {
+        node ret;
+        ret.mx = max(a.mx, b.mx);
+        return ret;
     }
 
-    void preCount()
-    {
-        for (ll i = 2; i <= n; i++)
-        {
-            LOG[i] = LOG[i >> 1] + 1;
-        }
-    }
+    int size;
+    vector<vector<node>> dp;
 
-    void build()
-    {
-        for (ll i = 0; i < n; i++)
-        {
-            dp[i][0] = v[i];
+public:
+    template <class M>
+    sparse_table(const vector<M> &a) {
+        size = (int)a.size();
+        int max_log = 32 - __builtin_clz(size);
+        dp.resize(max_log);
+
+        dp[0].resize(size);
+        for (int i = 0; i < size; ++i) {
+            dp[0][i] = a[i];
         }
-        for (ll mask = 1; (1 << mask) <= n; mask++)
-        {
-            for (ll i = 0; i + (1 << mask) <= n; i++)
-            {
-                dp[i][mask] = merge(dp[i][mask - 1], dp[i + (1 << (mask - 1))][mask - 1]);
+
+        for (int j = 1; j < max_log; j++) {
+            dp[j].resize(size - (1 << j) + 1);
+            for (int i = 0; i <= size - (1 << j); i++) {
+                dp[j][i] = merge(dp[j - 1][i], dp[j - 1][i + (1 << (j - 1))]);
             }
         }
     }
 
-public:
-    sparse_table(vector<ll> v)
-    {
-        this->v = v;
-        n = v.size();
-        LOG.assign(n + 1, 0);
-        dp.assign(n + 1, vector<ll>(22, 0));
-        preCount();
-        build();
-    }
-
-    ll query(ll l, ll r)
-    {
-        l--, r--;
-        ll mask = LOG[r - l + 1];
-        return merge(dp[l][mask], dp[r - (1 << mask) + 1][mask]);
+    node query(int l, int r) const {
+        int lg = 32 - __builtin_clz(r - l + 1) - 1;
+        return merge(dp[lg][l], dp[lg][r - (1 << lg) + 1]);
     }
 };
 
@@ -73,7 +64,8 @@ void Main()
     {
         ll l, r;
         cin >> l >> r;
-        cout << st.query(l, r) << '\n';
+        --l, --r;
+        cout << st.query(l, r).mx << '\n';
     }
 }
 /*
