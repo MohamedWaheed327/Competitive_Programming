@@ -48,20 +48,19 @@ public:
     }
 };
 
-void Main()
-{
+void Main() {
     ll n;
     cin >> n;
     vector<ll> v(n);
-    for (auto &it : v)
+    for (auto &it : v) {
         cin >> it;
+    }
 
     sparse_table st(v);
 
     ll q;
     cin >> q;
-    while (q--)
-    {
+    while (q--) {
         ll l, r;
         cin >> l >> r;
         --l, --r;
@@ -74,17 +73,11 @@ void Main()
 
 
 */
-signed main()
-{
+signed main() {
     ios_base::sync_with_stdio(false), cout.tie(NULL), cin.tie(NULL);
-#ifndef ONLINE_JUDGE
-    freopen("input.txt", "r", stdin);
-    freopen("output.txt", "w", stdout);
-#endif
     ll T = 1;
     // cin >> T;
-    for (ll i = 1; i <= T; i++)
-    {
+    for (ll i = 1; i <= T; i++) {
         Main();
         cout << '\n';
     }
