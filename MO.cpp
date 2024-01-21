@@ -6,30 +6,23 @@ using namespace std;
 class MO {
 private:
     struct query {
-        int l, r, q_indx, b_indx;
-        query() {}
-        query(int l, int r, int q_indx, int b_indx) {
-            this->l = l;
-            this->r = r;
-            this->q_indx = q_indx;
-            this->b_indx = b_indx;
-        }
+        int l, r, q_indx;
     };
 
     int q = 0, SQ;
-    vector<ll> v;
+    vector<long long> v;
     vector<query> Q;
 
     ll res = 0;
     int freq[100] = {};
 
-    void add(ll ind) {
+    void add(int ind) {
         if (!freq[v[ind]])
             res++;
         freq[v[ind]]++;
     }
 
-    void remove(ll ind) {
+    void remove(int ind) {
         freq[v[ind]]--;
         if (!freq[v[ind]])
             res--;
@@ -37,36 +30,36 @@ private:
 
 public:
     template <class M>
-    MO(vector<M> v) {
+    MO(const vector<M> &v) {
         this->v = v;
         SQ = sqrt(v.size());
     }
 
     template <class... M>
-    void add_query(int l, int r, M... x) {
-        Q.push_back(query(l, r, q++, l / SQ, x...));
+    void add_query(int l, int r, M &...x) {
+        Q.push_back({l, r, q++, x...});
     }
 
     void mo_process() {
-        vector<ll> ans(q);
+        vector<long long> ans(q);
 
         sort(Q.begin(), Q.end(), [&](query a, query b) {
-            if (a.b_indx != b.b_indx)
-                return a.b_indx < b.b_indx;
+            if (a.l / SQ != b.l / SQ)
+                return a.l / SQ < b.l / SQ;
             return a.r < b.r;
         });
 
-        ll l = 1, r = 0;
-        for (auto it : Q) {
-            while (r > it.r)
+        int l = 1, r = 0;
+        for (auto [L, R, q_indx] : Q) {
+            while (r > R)
                 remove(r--);
-            while (r < it.r)
+            while (r < R)
                 add(++r);
-            while (l > it.l)
+            while (l > L)
                 add(--l);
-            while (l < it.l)
+            while (l < L)
                 remove(l++);
-            ans[it.q_indx] = res;
+            ans[q_indx] = res;
         }
 
         for (auto it : ans) {
