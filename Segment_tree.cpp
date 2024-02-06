@@ -7,15 +7,12 @@ class segment_tree {
 private:
     struct node {
 
-        void apply(int lx, int rx, long long val) {
+        void apply(int lx, int rx, long long val = 0) {
+        }
+
+        void merge(const node &a, const node &b) const {
         }
     };
-
-    node merge(const node &a, const node &b) const {
-        node ret;
-
-        return ret;
-    }
 
     inline void propagate(int x, int lx, int rx) {
         // int mid = lx + rx >> 1;
@@ -42,7 +39,7 @@ private:
         int right = x + (mid - lx + 1 << 1);
         build(left, lx, mid, build_seg...);
         build(right, mid + 1, rx, build_seg...);
-        seg[x] = merge(seg[left], seg[right]);
+        seg[x].merge(seg[left], seg[right]);
     }
 
     template <class... M>
@@ -61,25 +58,26 @@ private:
         if (r >= mid + 1) {
             update(right, mid + 1, rx, l, r, value...);
         }
-        seg[x] = merge(seg[left], seg[right]);
+        seg[x].merge(seg[left], seg[right]);
     }
 
     node query(int x, int lx, int rx, int l, int r) {
-        if (l <= lx && rx <= r)
+        if (l <= lx && rx <= r) {
             return seg[x];
+        }
         propagate(x, lx, rx);
         int mid = lx + rx >> 1;
         int left = x + 1;
         int right = x + (mid - lx + 1 << 1);
         node ret;
         if (r < mid + 1) {
-            ret = query(left, lx, mid, l, r);
+            return query(left, lx, mid, l, r);
         }
         else if (mid < l) {
-            ret = query(right, mid + 1, rx, l, r);
+            return query(right, mid + 1, rx, l, r);
         }
         else {
-            ret = merge(query(left, lx, mid, l, r), query(right, mid + 1, rx, l, r));
+            ret.merge(query(left, lx, mid, l, r), query(right, mid + 1, rx, l, r));
         }
         return ret;
     }
