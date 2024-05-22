@@ -1,6 +1,5 @@
 // Mohamed_Waheed
 #include <bits/stdc++.h>
-#define ll long long
 using namespace std;
 
 class segment_tree {
@@ -10,7 +9,7 @@ private:
         void apply(int lx, int rx, long long val = 0) {
         }
 
-        void merge(const node &a, const node &b) const {
+        void merge(const node &a, const node &b) {
         }
     };
 
@@ -103,6 +102,27 @@ private:
         return find_first(right, mid + 1, rx, l, r, F);
     }
 
+    int find_last(int x, int lx, int rx, int l, int r, const function<bool(node)> &F) {
+        if (rx < l || r < lx || !F(seg[x])) {
+            return -1;
+        }
+
+        if (lx == rx) {
+            return lx;
+        }
+
+        propagate(x, lx, rx);
+        int mid = lx + rx >> 1;
+        int left = x + 1;
+        int right = x + (mid - lx + 1 << 1);
+
+        int rgt = find_last(right, mid + 1, rx, l, r, F);
+        if (~rgt) {
+            return rgt;
+        }
+        return find_last(left, lx, mid, l, r, F);
+    }
+
 public:
     template <class... M>
     segment_tree(int n, M... x) {
@@ -130,9 +150,13 @@ public:
     int find_first(int l, int r, const function<bool(node)> &F) {
         return find_first(0, 0, size - 1, l, r, F);
     }
+
+    int find_last(int l, int r, const function<bool(node)> &F) {
+        return find_last(0, 0, size - 1, l, r, F);
+    }
 };
 
-void Main() {
+void Main(...) {
     
 }
 /*
@@ -147,12 +171,10 @@ void Main() {
 
 */
 signed main() {
-    ios_base::sync_with_stdio(false), cout.tie(NULL), cin.tie(NULL);
-    ll T = 1;
+    cin.tie(0)->sync_with_stdio(0);
+    int T = 1;
     // cin >> T;
-    for (ll i = 1; i <= T; i++) {
-        Main();
-        cout << '\n';
+    for (int i = 1; i <= T; i++) {
+        Main(i), cout << '\n';
     }
-    return 0;
 }
