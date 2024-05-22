@@ -1,13 +1,15 @@
 // Mohamed_Waheed
 #include <bits/stdc++.h>
-#define ll long long
 using namespace std;
 
 class graph {
 private:
     int N;
     vector<bool> vis;
+    vector<int> level;
+    vector<int> parent;
     vector<int> dsu_parent;
+    vector<vector<int>> anc;
     vector<vector<pair<int, long long>>> g;
 
     void do_dfs(int node) {
@@ -56,7 +58,6 @@ public:
     }
 
     void add_edge(int u, int v, long long cost = 0) {
-        --u, --v;
         g[u].push_back({v, cost});
     }
 
@@ -72,18 +73,22 @@ public:
         return dis;
     }
 
+    bool is_leave(int node) {
+        return (int)g[node].size() == 1;
+    }
+
     vector<int> components() {
         int key = 1;
         vector<int> comp(N);
 
-        auto check = [&](auto self, ll node) {
+        function<void(int)> Do = [&](int node) {
             if (vis[node])
                 return;
             comp[node] = key;
             vis[node] = 1;
             for (auto it : g[node]) {
                 if (!vis[it.first]) {
-                    self(self, it.first);
+                    Do(it.first);
                 }
             }
         };
@@ -91,7 +96,7 @@ public:
         vis.assign(N, 0);
         for (int i = 0; i < N; i++) {
             if (!vis[i]) {
-                check(check, i);
+                Do(i);
                 key++;
             }
         }
@@ -104,7 +109,7 @@ public:
             is_cyclic[i] = g[i].size();
         }
 
-        auto check = [&](auto self, int node) {
+        function<void(int)> Do = [&](int node) {
             if (vis[node] || is_cyclic[node] != 1)
                 return;
             is_cyclic[node]--;
@@ -112,14 +117,14 @@ public:
             for (auto it : g[node]) {
                 if (!vis[it.first]) {
                     is_cyclic[it.first]--;
-                    self(self, it.first);
+                    Do(it.first);
                 }
             }
         };
 
         vis.assign(N, 0);
         for (int i = 0; i < N; i++) {
-            check(check, i);
+            Do(i);
         }
         return is_cyclic;
     }
@@ -127,7 +132,7 @@ public:
     vector<long long> dijkstra(int start) {
         vector<long long> cheapest_path(N, 1e18);
         vis.assign(N, 0);
-        priority_queue<pair<long long, int>, vector<pair<long long, int>>, greater<pair<long long, int>>> pq;
+        priority_queue<pair<long long, int>, vector<pair<long long, int>>, greater<>> pq;
         pq.push({0, start});
         while (pq.size()) {
             auto [cost, node] = pq.top();
@@ -155,11 +160,84 @@ public:
         dsu_parent[u] = v;
     }
 
+    void build_lca() {
+        level.resize(N);
+        parent.resize(N);
+
+        function<void(int, int, int)> Do;
+        Do = [&](int node, int par, int lvl) {
+            parent[node] = par;
+            level[node] = lvl;
+            for (auto it : g[node]) {
+                if (it.first != par) {
+                    Do(it.first, node, lvl + 1);
+                }
+            }
+        };
+        Do(0, -1, 0);
+
+        int lg = __lg(N) + 1;
+        anc = vector(N, vector<int>(lg, -1));
+        for (int i = 0; i < lg; ++i) {
+            for (int j = 0; j < N; ++j) {
+                if (i == 0) {
+                    anc[j][i] = parent[j];
+                }
+                else if (~anc[j][i - 1]) {
+                    anc[j][i] = anc[anc[j][i - 1]][i - 1];
+                }
+            }
+        }
+    }
+
+    int get_anc(int node, int k) {
+        if (k >= N) {
+            return -1;
+        }
+        int ret = node;
+        for (int bit = __lg(k); ~bit; --bit) {
+            if ((k & (1 << bit)) && ~ret) {
+                ret = anc[ret][bit];
+            }
+        }
+        return ret;
+    }
+
+    int lca(int a, int b) {
+        if (level[a] < level[b]) {
+            b = get_anc(b, level[b] - level[a]);
+        }
+
+        if (level[b] < level[a]) {
+            a = get_anc(a, level[a] - level[b]);
+        }
+
+        if (a == b) {
+            return a;
+        }
+
+        for (int i = __lg(N); ~i; --i) {
+            if (anc[a][i] != anc[b][i]) {
+                a = anc[a][i];
+                b = anc[b][i];
+            }
+        }
+        return parent[a];
+    }
+
+    int distance(int a, int b) {
+        if (anc.empty()) {
+            build_lca();
+        }
+        return level[a] + level[b] - 2 * level[lca(a, b)];
+    }
+
     void solve() {
     }
 };
 
-void Main() {
+void Main(...) {
+    
 }
 /*
 
@@ -173,12 +251,10 @@ void Main() {
 
 */
 signed main() {
-    ios_base::sync_with_stdio(false), cout.tie(NULL), cin.tie(NULL);
-    ll T = 1;
+    cin.tie(0)->sync_with_stdio(0);
+    int T = 1;
     // cin >> T;
-    for (ll i = 1; i <= T; i++) {
-        Main();
-        cout << '\n';
+    for (int i = 1; i <= T; i++) {
+        Main(i), cout << '\n';
     }
-    return 0;
 }
