@@ -1,6 +1,5 @@
 // Mohamed_Waheed
 #include <bits/stdc++.h>
-#define ll long long
 using namespace std;
 
 #define i128 __int128_t
@@ -13,7 +12,7 @@ istream &operator>>(istream &in, i128 &x) {
         start = 1;
         sign = -1;
     }
-    for (ll i = start; i < s.size(); ++i) {
+    for (int i = start; i < s.size(); ++i) {
         x *= 10;
         x += s[i] - '0';
     }
@@ -36,10 +35,10 @@ ostream &operator<<(ostream &out, i128 x) {
     return out;
 }
 
-void Main() {
+void Main(...) {
     i128 x = 0, y = 0;
     cin >> x >> y;
-    cout << x + y;
+    cout << x + y << " " << x - y;
 }
 /*
 
@@ -53,12 +52,10 @@ void Main() {
 
 */
 signed main() {
-    ios_base::sync_with_stdio(false), cout.tie(NULL), cin.tie(NULL);
-    ll T = 1;
+    cin.tie(0)->sync_with_stdio(0);
+    int T = 1;
     // cin >> T;
-    for (ll i = 1; i <= T; i++) {
-        Main();
-        cout << '\n';
+    for (int i = 1; i <= T; i++) {
+        Main(i), cout << '\n';
     }
-    return 0;
 }
