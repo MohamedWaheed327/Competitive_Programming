@@ -1,70 +1,52 @@
-// Mohamed_Waheed_
+// Mohamed_Waheed
 #include <bits/stdc++.h>
-#define ll long long
 using namespace std;
 
 class sparse_table {
 private:
-    struct node {
-        int mx;
-
-        void operator=(int val) {
-            mx = val;
-        }
-    };
-
-    node merge(const node &a, const node &b) const {
-        node ret;
-        ret.mx = max(a.mx, b.mx);
-        return ret;
+    long long merge(long long a, long long b) {
+        return a & b;
     }
 
-    int size;
-    vector<vector<node>> dp;
+    vector<vector<long long>> dp;
 
 public:
     template <class M>
     sparse_table(const vector<M> &a) {
-        size = (int)a.size();
-        int max_log = 32 - __builtin_clz(size);
-        dp.resize(max_log);
+        int n = a.size(), lg = __lg(n);
+        dp.resize(lg + 1, vector<long long>(n));
 
-        dp[0].resize(size);
-        for (int i = 0; i < size; ++i) {
+        for (int i = 0; i < n; ++i) {
             dp[0][i] = a[i];
         }
 
-        for (int j = 1; j < max_log; j++) {
-            dp[j].resize(size - (1 << j) + 1);
-            for (int i = 0; i <= size - (1 << j); i++) {
+        for (int j = 1; j <= lg; j++) {
+            for (int i = 0; i + (1 << (j - 1)) < n; i++) {
                 dp[j][i] = merge(dp[j - 1][i], dp[j - 1][i + (1 << (j - 1))]);
             }
         }
     }
 
-    node query(int l, int r) const {
+    long long query(int l, int r) {
         int lg = 32 - __builtin_clz(r - l + 1) - 1;
         return merge(dp[lg][l], dp[lg][r - (1 << lg) + 1]);
     }
 };
 
-void Main() {
-    ll n;
-    cin >> n;
-    vector<ll> v(n);
+void Main(...) {
+    int n, q;
+    cin >> n >> q;
+
+    vector<int> v(n);
     for (auto &it : v) {
         cin >> it;
     }
 
     sparse_table st(v);
-
-    ll q;
-    cin >> q;
     while (q--) {
-        ll l, r;
+        int l, r;
         cin >> l >> r;
-        --l, --r;
-        cout << st.query(l, r).mx << '\n';
+        cout << st.query(--l, --r) << '\n';
     }
 }
 /*
@@ -72,14 +54,17 @@ void Main() {
 
 
 
+
+
+
+
+
 */
 signed main() {
-    ios_base::sync_with_stdio(false), cout.tie(NULL), cin.tie(NULL);
-    ll T = 1;
+    cin.tie(0)->sync_with_stdio(0);
+    int T = 1;
     // cin >> T;
-    for (ll i = 1; i <= T; i++) {
-        Main();
-        cout << '\n';
+    for (int i = 1; i <= T; i++) {
+        Main(i), cout << '\n';
     }
-    return 0;
 }
