@@ -1,92 +1,90 @@
-// Mohamed_Waheed_
+// Mohamed_Waheed
 #include <bits/stdc++.h>
-#define ll long long
 using namespace std;
 
 class segment_tree {
 private:
     struct node {
-        long long mx;
+        int mx;
 
-        void apply(int lx, int rx, long long val) {
+        void apply(int lx, int rx, int val) {
             mx = val;
         }
-    };
 
-    node merge(const node &a, const node &b) const {
-        node ret;
-        ret.mx = max(a.mx, b.mx);
-        return ret;
-    }
+        void merge(const node &a, const node &b) {
+            mx = max(a.mx, b.mx);
+        }
+    };
 
     int size;
     vector<node> seg;
 
-    template <class... M>
-    void build(int x, int lx, int rx, const vector<M> &...build_seg) {
+    template <class M>
+    void build(int x, int lx, int rx, const vector<M> &build_seg) {
         if (lx == rx) {
-            seg[x].apply(lx, rx, build_seg[lx]...);
+            seg[x].apply(lx, rx, build_seg[lx]);
             return;
         }
         int mid = lx + rx >> 1;
         int left = x + 1;
         int right = x + (mid - lx + 1 << 1);
-        build(left, lx, mid, build_seg...);
-        build(right, mid + 1, rx, build_seg...);
-        seg[x] = merge(seg[left], seg[right]);
+        build(left, lx, mid, build_seg);
+        build(right, mid + 1, rx, build_seg);
+        seg[x].merge(seg[left], seg[right]);
     }
 
-    template <class... M>
-    void update(int x, int lx, int rx, int l, int r, const M &...value) {
+    template <class M>
+    void update(int x, int lx, int rx, int l, int r, const M &value) {
         if (l <= lx && rx <= r) {
-            seg[x].apply(lx, rx, value...);
+            seg[x].apply(lx, rx, value);
             return;
         }
         int mid = lx + rx >> 1;
         int left = x + 1;
         int right = x + (mid - lx + 1 << 1);
         if (l <= mid) {
-            update(left, lx, mid, l, r, value...);
+            update(left, lx, mid, l, r, value);
         }
         if (r >= mid + 1) {
-            update(right, mid + 1, rx, l, r, value...);
+            update(right, mid + 1, rx, l, r, value);
         }
-        seg[x] = merge(seg[left], seg[right]);
+        seg[x].merge(seg[left], seg[right]);
     }
 
     node query(int x, int lx, int rx, int l, int r) {
-        if (l <= lx && rx <= r)
+        if (l <= lx && rx <= r) {
             return seg[x];
+        }
         int mid = lx + rx >> 1;
         int left = x + 1;
         int right = x + (mid - lx + 1 << 1);
         node ret;
         if (r < mid + 1) {
-            ret = query(left, lx, mid, l, r);
+            return query(left, lx, mid, l, r);
         }
         else if (mid < l) {
-            ret = query(right, mid + 1, rx, l, r);
+            return query(right, mid + 1, rx, l, r);
         }
         else {
-            ret = merge(query(left, lx, mid, l, r), query(right, mid + 1, rx, l, r));
+            ret.merge(query(left, lx, mid, l, r), query(right, mid + 1, rx, l, r));
         }
         return ret;
     }
 
 public:
-    template <class... M>
-    segment_tree(const vector<M> &...build_seg) {
-        size = (build_seg.size(), ...);
+    template <class M>
+    segment_tree(const vector<M> &build_seg) {
+        size = build_seg.size();
         seg.resize(2 * size - 1);
-        build(0, 0, size - 1, build_seg...);
+        build(0, 0, size - 1, build_seg);
     }
 
-    template <class... M>
-    void update(int l, int r, const M &...value) {
-        update(0, 0, size - 1, l, r, value...);
+    template <class M>
+    void update(int ind, const M &value) {
+        update(0, 0, size - 1, ind, ind, value);
     }
 
-    long long query(int l, int r) {
+    int query(int l, int r) {
         if (l > r) {
             return 0;
         }
@@ -94,42 +92,34 @@ public:
     }
 };
 
-vector<ll> compress(vector<ll> &v) {
-    ll n = v.size();
-    vector<pair<ll, ll>> p;
-    for (ll i = 0; i < n; i++) {
-        p.push_back({v[i], i});
-    }
-    sort(p.begin(), p.end());
+template <class M>
+vector<M> compress(vector<M> &v) {
+    auto real = v;
+    sort(real.begin(), real.end());
+    real.erase(unique(real.begin(), real.end()), real.end());
 
-    vector<ll> real(n);
-    ll last = p[0].first, nxt = 0;
-    for (auto [F, S] : p) {
-        if (last < F)
-            nxt++;
-        last = F;
-        real[nxt] = F;
-        v[S] = nxt;
+    for (auto &it : v) {
+        it = lower_bound(real.begin(), real.end(), it) - real.begin();
     }
     return real;
 }
 
-vector<ll> lis(vector<ll> v) {
+vector<int> lis(vector<int> v) {
     auto real = compress(v);
-    ll n = v.size();
-    vector<ll> dp(n, 0);
+    int n = v.size();
+    vector<int> dp(n, 0);
     segment_tree st(dp);
-    vector<pair<ll, ll>> history;
+    vector<pair<int, int>> history;
 
     for (auto it : v) {
         history.push_back({it, dp[it]});
         dp[it] = max(dp[it], st.query(0, it - 1) + 1);
-        st.update(it, it, dp[it]);
+        st.update(it, dp[it]);
     }
 
-    ll mx = st.query(0, n - 1), last = LLONG_MAX;
-    vector<ll> ret;
-    for (ll i = n - 1; i >= 0; i--) {
+    long long mx = st.query(0, n - 1), last = LLONG_MAX;
+    vector<int> ret;
+    for (int i = n - 1; ~i; i--) {
         if (mx == dp[v[i]] && last > v[i]) {
             mx--;
             last = v[i];
@@ -140,12 +130,13 @@ vector<ll> lis(vector<ll> v) {
         history.pop_back();
     }
     reverse(ret.begin(), ret.end());
-    for (auto &it : ret)
+    for (auto &it : ret) {
         it = real[it];
+    }
     return ret;
 }
 
-void Main() {
+void Main(...) {
     for (auto it : lis({2, 1, 5, 2, 8, 9, 4, 10})) {
         cout << it << " ";
     }
@@ -158,14 +149,14 @@ void Main() {
 
 
 
+
+
 */
 signed main() {
-    ios_base::sync_with_stdio(false), cout.tie(NULL), cin.tie(NULL);
-    ll T = 1;
+    cin.tie(0)->sync_with_stdio(0);
+    int T = 1;
     // cin >> T;
-    for (ll i = 1; i <= T; i++) {
-        Main();
-        cout << '\n';
+    for (int i = 1; i <= T; i++) {
+        Main(i), cout << '\n';
     }
-    return 0;
 }
