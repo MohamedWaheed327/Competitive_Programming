@@ -2,6 +2,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+// preprocess
 namespace sieve {
     vector<bool> is_prime(int N) {
         vector<int> _primes;
@@ -130,6 +131,62 @@ namespace sieve {
         }
         return _next_prime;
     }
+}
+
+// functions
+bool is_prime(long long n) {
+    if (n < 2) {
+        return 0;
+    }
+    for (long long i = 2; i <= n / i; i++) {
+        if (n % i == 0) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+template <class M>
+vector<M> prime_factors(M n) {
+    vector<M> ret;
+    for (long long i = 2; i <= n / i; i++) {
+        while (n % i == 0) {
+            n /= i;
+            ret.push_back(i);
+        }
+    }
+    if (n > 1) {
+        ret.push_back(n);
+    }
+    return ret;
+}
+
+template <class M>
+vector<M> divisors(M n) {
+    vector<M> ret;
+    for (long long i = 1; i <= n / i; i++) {
+        if (n % i == 0) {
+            ret.push_back(i);
+            if (i * i != n) {
+                ret.push_back(n / i);
+            }
+        }
+    }
+    return ret;
+}
+
+long long phi(long long n) { // n * (1 - 1/p)
+    long long ret = n;
+    for (long long i = 2; i <= n / i; i++) {
+        if (n % i == 0) {
+            while (n % i == 0)
+                n /= i;
+            ret -= ret / i;
+        }
+    }
+    if (n > 1)
+        ret -= ret / n;
+    return ret;
 }
 
 auto isPrime = sieve::is_prime(100);
