@@ -81,13 +81,30 @@ private:
         return ret;
     }
 
-    int find_first(int x, int lx, int rx, int l, int r, const function<bool(node)> &F) {
-        if (rx < l || r < lx || !F(seg[x])) {
-            return -1;
-        }
+    pair<int, node> node_find_first(int x, int lx, int rx, node *node_before, const auto &F) {
+        auto cur_node = seg[x];
+        if (node_before != NULL)
+            cur_node.merge(*node_before, seg[x]);
+        if (!F(cur_node))
+            return {-1, cur_node};
+        if (lx == rx)
+            return {lx, cur_node};
 
-        if (lx == rx) {
-            return lx;
+        propagate(x, lx, rx);
+        int mid = lx + rx >> 1;
+        int left = x + 1;
+        int right = x + (mid - lx + 1 << 1);
+
+        pair<int, node> lft = node_find_first(left, lx, mid, node_before, F);
+        if (~lft.first)
+            return lft;
+        node_before = &lft.second;
+        return node_find_first(right, mid + 1, rx, node_before, F);
+    }
+
+    pair<int, node> find_first(int x, int lx, int rx, int l, int r, node *node_before, const auto &F) {
+        if (l <= lx && rx <= r) {
+            return node_find_first(x, lx, rx, node_before, F);
         }
 
         propagate(x, lx, rx);
@@ -95,11 +112,18 @@ private:
         int left = x + 1;
         int right = x + (mid - lx + 1 << 1);
 
-        int lft = find_first(left, lx, mid, l, r, F);
-        if (~lft) {
+        if (r < mid + 1) {
+            return find_first(left, lx, mid, l, r, node_before, F);
+        }
+        if (mid < l) {
+            return find_first(right, mid + 1, rx, l, r, node_before, F);
+        }
+        pair<int, node> lft = find_first(left, lx, mid, l, r, node_before, F);
+        if (~lft.first) {
             return lft;
         }
-        return find_first(right, mid + 1, rx, l, r, F);
+        node_before = &lft.second;
+        return find_first(right, mid + 1, rx, l, r, node_before, F);
     }
 
     int find_last(int x, int lx, int rx, int l, int r, const function<bool(node)> &F) {
@@ -147,8 +171,8 @@ public:
         return query(0, 0, size - 1, l, r);
     }
 
-    int find_first(int l, int r, const function<bool(node)> &F) {
-        return find_first(0, 0, size - 1, l, r, F);
+    int find_first(int l, int r, const auto &F) {
+        return find_first(0, 0, size - 1, l, r, NULL, F).first;
     }
 
     int find_last(int l, int r, const function<bool(node)> &F) {
