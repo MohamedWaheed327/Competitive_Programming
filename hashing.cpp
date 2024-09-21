@@ -4,30 +4,34 @@ using namespace std;
 
 class dr_string {
 private:
-    long long M1 = 1e9 + 7, M2 = 1e9 + 9, B1 = 31, B2 = 37;
-    vector<int> pow1, pow2, hash1, hash2;
+    static const long long mod = (1LL << 61) - 1;
+    static long long base;
+    vector<long long> pow{1}, hash{0};
+
+    long long sub(long long a, long long b) {
+        a -= b;
+        if (a < 0)
+            a += mod;
+        return a;
+    }
 
 public:
-    dr_string(const string &s) {
-        int N = s.size() + 1;
-        pow1.resize(N), pow2.resize(N);
-        hash1.resize(N), hash2.resize(N);
-        pow1[0] = pow2[0] = 1;
-        hash1[0] = hash2[0] = 0;
-
-        for (int i = 1; i < N; i++) {
-            pow1[i] = (pow1[i - 1] * B1) % M1;
-            pow2[i] = (pow2[i - 1] * B2) % M2;
-            hash1[i] = (hash1[i - 1] * B1 + s[i - 1]) % M1;
-            hash2[i] = (hash2[i - 1] * B2 + s[i - 1]) % M2;
+    dr_string(const auto &a) {
+        for (int i = 0; i < a.size(); i++) {
+            pow.push_back((__int128_t)pow[i] * base % mod);
+            hash.push_back(((__int128_t)hash[i] * base + a[i]) % mod);
         }
     }
 
-    pair<int, int> substr(int l, int r) {
-        return {((hash1[r + 1] - 1LL * hash1[l] * pow1[r - l + 1]) % M1 + M1) % M1,
-                ((hash2[r + 1] - 1LL * hash2[l] * pow2[r - l + 1]) % M2 + M2) % M2};
+    long long substr(int l, int r) {
+        return sub(hash[r + 1], (__int128_t)hash[l] * pow[r - l + 1] % mod);
+    }
+
+    long long merge(long long h1, long long h2, int len2) {
+        return ((__int128_t)h1 * pow[len2] + h2) % mod;
     }
 };
+long long dr_string::base = (mod >> 2) + rand() % (mod >> 1);
 
 void Main(...) {
     
