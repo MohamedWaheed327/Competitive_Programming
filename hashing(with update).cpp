@@ -2,55 +2,31 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-const long long mod1 = 1e9 + 7, mod2 = 2e9 + 11, base1 = 31, base2 = 327;
-vector<int> _pow1{1}, _pow2{1}, _powsum1{0}, _powsum2{0};
-void init(int N) {
-    while (_pow1.size() <= N) {
-        _powsum1.push_back((0LL + _pow1.back() + _powsum1.back()) % mod1);
-        _pow1.push_back(1LL * _pow1.back() * base1 % mod1);
-        _powsum2.push_back((0LL + _pow2.back() + _powsum2.back()) % mod2);
-        _pow2.push_back(1LL * _pow2.back() * base2 % mod2);
-    }
-}
-long long pow1(int p) {
-    init(p);
-    return _pow1[p];
-}
-long long pow2(int p) {
-    init(p);
-    return _pow2[p];
-}
-long long powsum1(int p) {
-    init(p);
-    return _powsum1[p];
-}
-long long powsum2(int p) {
-    init(p);
-    return _powsum2[p];
-}
-
 class dr_string {
 private:
+    static const long long mod = (1LL << 61) - 1;
+    static long long base;
+    static vector<long long> pw, powsum;
+
     class segment_tree {
     private:
         struct node {
-            int len, h1, h2, lazy = -1;
+            int len, lazy = -1;
+            long long hash;
 
             void apply(int lx, int rx, long long val = 0) {
                 lazy = val;
                 len = rx - lx + 1;
-                h1 = val * powsum1(len) % mod1;
-                h2 = val * powsum2(len) % mod2;
+                hash = val * (__int128_t)powsum[len] % mod;
             }
 
             void merge(const node &a, const node &b) {
                 len = a.len + b.len;
-                h1 = (a.h1 + b.h1 * pow1(a.len)) % mod1;
-                h2 = (a.h2 + b.h2 * pow2(a.len)) % mod2;
+                hash = (a.hash + b.hash * (__int128_t)pw[a.len]) % mod;
             }
 
             bool operator==(const node &x) {
-                return h1 == x.h1 && h2 == x.h2;
+                return hash == x.hash;
             }
         };
 
@@ -148,6 +124,10 @@ private:
 public:
     dr_string(string s) {
         size = s.size();
+        while (pw.size() <= size) {
+            powsum.push_back((pw.back() + powsum.back()) % mod);
+            pw.push_back((__int128_t)pw.back() * base % mod);
+        }
         A = segment_tree(vector<char>(s.begin(), s.end()));
         reverse(s.begin(), s.end());
         B = segment_tree(vector<char>(s.begin(), s.end()));
@@ -170,6 +150,9 @@ public:
         return substr(l, r) == substr_rev(l, r);
     }
 };
+mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
+long long dr_string::base = (mod >> 2) + rng() % (mod >> 1);
+vector<long long> dr_string::pw = {1}, dr_string::powsum = {0};
 
 void Main(...) {
     int n;
