@@ -31,7 +31,8 @@ public:
         return ((__int128_t)h1 * pow[len2] + h2) % mod;
     }
 };
-long long dr_string::base = (mod >> 2) + rand() % (mod >> 1);
+mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
+long long dr_string::base = (mod >> 2) + rng() % (mod >> 1);
 
 void Main(...) {
     
