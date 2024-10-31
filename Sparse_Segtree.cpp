@@ -9,7 +9,7 @@ private:
         long long sum = 0, lazy = -1;
         int left = -1, right = -1;
 
-        void apply(int lx, int rx, long long val = 0) {
+        void apply(long long lx, long long rx, long long val = 0) {
             sum = (rx - lx + 1) * val;
             lazy = val;
         }
@@ -19,7 +19,7 @@ private:
         }
     };
 
-    inline void propagate(int x, int lx, int rx) {
+    inline void propagate(int x, long long lx, long long rx) {
         int mid = lx + rx >> 1;
         int left = seg[x].left;
         int right = seg[x].right;
@@ -40,7 +40,7 @@ private:
     }
 
     template <class... M>
-    void update(int x, int lx, int rx, int l, int r, const M &...val) {
+    void update(int x, long long lx, long long rx, int l, int r, const M &...val) {
         if (l <= lx && rx <= r) {
             return seg[x].apply(lx, rx, val...);
         }
@@ -59,7 +59,7 @@ private:
         seg[x].merge(seg[left], seg[right]);
     }
 
-    node query(int x, int lx, int rx, int l, int r) {
+    node query(int x, long long lx, long long rx, int l, int r) {
         if (l <= lx && rx <= r) {
             return seg[x];
         }
@@ -80,7 +80,7 @@ private:
         return ret;
     }
 
-    pair<int, node> node_find_first(int x, int lx, int rx, node *node_before, const auto &F) {
+    pair<int, node> node_find_first(int x, long long lx, long long rx, node *node_before, const auto &F) {
         node cur_node = seg[x];
         if (node_before != NULL) {
             cur_node.merge(*node_before, seg[x]);
@@ -104,7 +104,7 @@ private:
         return node_find_first(right, mid + 1, rx, &lft.second, F);
     }
 
-    pair<int, node> find_first(int x, int lx, int rx, int l, int r, node *node_before, const auto &F) {
+    pair<int, node> find_first(int x, long long lx, long long rx, int l, int r, node *node_before, const auto &F) {
         if (l <= lx && rx <= r) {
             return node_find_first(x, lx, rx, node_before, F);
         }
@@ -127,7 +127,7 @@ private:
         return find_first(right, mid + 1, rx, l, r, &lft.second, F);
     }
 
-    pair<int, node> node_find_last(int x, int lx, int rx, node *node_before, const auto &F) {
+    pair<int, node> node_find_last(int x, long long lx, long long rx, node *node_before, const auto &F) {
         node cur_node = seg[x];
         if (node_before != NULL) {
             cur_node.merge(seg[x], *node_before);
@@ -151,7 +151,7 @@ private:
         return node_find_last(left, lx, mid, &rgt.second, F);
     }
 
-    pair<int, node> find_last(int x, int lx, int rx, int l, int r, node *node_before, const auto &F) {
+    pair<int, node> find_last(int x, long long lx, long long rx, int l, int r, node *node_before, const auto &F) {
         if (l <= lx && rx <= r) {
             return node_find_last(x, lx, rx, node_before, F);
         }
