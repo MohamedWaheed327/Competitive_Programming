@@ -2,7 +2,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <int LX = 0, int RX = (int)1e9>
+template <long long LX = 0, long long RX = (int)1e9>
 class seg_tree {
 private:
     struct node {
