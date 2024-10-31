@@ -40,7 +40,7 @@ private:
     }
 
     template <class... M>
-    void update(int x, long long lx, long long rx, int l, int r, const M &...val) {
+    void update(int x, long long lx, long long rx, long long l, long long r, const M &...val) {
         if (l <= lx && rx <= r) {
             return seg[x].apply(lx, rx, val...);
         }
@@ -59,7 +59,7 @@ private:
         seg[x].merge(seg[left], seg[right]);
     }
 
-    node query(int x, long long lx, long long rx, int l, int r) {
+    node query(int x, long long lx, long long rx, long long l, long long r) {
         if (l <= lx && rx <= r) {
             return seg[x];
         }
@@ -104,7 +104,7 @@ private:
         return node_find_first(right, mid + 1, rx, &lft.second, F);
     }
 
-    pair<int, node> find_first(int x, long long lx, long long rx, int l, int r, node *node_before, const auto &F) {
+    pair<int, node> find_first(int x, long long lx, long long rx, long long l, long long r, node *node_before, const auto &F) {
         if (l <= lx && rx <= r) {
             return node_find_first(x, lx, rx, node_before, F);
         }
@@ -151,7 +151,7 @@ private:
         return node_find_last(left, lx, mid, &rgt.second, F);
     }
 
-    pair<int, node> find_last(int x, long long lx, long long rx, int l, int r, node *node_before, const auto &F) {
+    pair<int, node> find_last(int x, long long lx, long long rx, long long l, long long r, node *node_before, const auto &F) {
         if (l <= lx && rx <= r) {
             return node_find_last(x, lx, rx, node_before, F);
         }
@@ -180,19 +180,19 @@ public:
     }
 
     template <class... M>
-    void update(int l, int r, const M &...val) {
+    void update(long long l, long long r, const M &...val) {
         update(0, LX, RX, l, r, val...);
     }
 
-    node query(int l, int r) {
+    node query(long long l, long long r) {
         return query(0, LX, RX, l, r);
     }
 
-    int find_first(int l, int r, const auto &F) {
+    int find_first(long long l, long long r, const auto &F) {
         return find_first(0, LX, RX, l, r, NULL, F).first;
     }
 
-    int find_last(int l, int r, const auto &F) {
+    int find_last(long long l, long long r, const auto &F) {
         return find_last(0, LX, RX, l, r, NULL, F).first;
     }
 };
