@@ -25,7 +25,7 @@ ostream &operator<<(ostream &out, i128 x) {
         cout << '-';
         x = -x;
     }
-    string ret;
+    string ret = x ? "":"0";
     while (x) {
         ret.push_back(x % 10 + '0');
         x /= 10;
