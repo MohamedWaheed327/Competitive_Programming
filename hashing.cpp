@@ -4,11 +4,11 @@ using namespace std;
 
 class dr_string {
 private:
-    static const long long mod = (1LL << 61) - 1;
-    static long long base;
-    vector<long long> pow{1}, hash{0};
+    static const int64_t mod = (1LL << 61) - 1;
+    static int64_t base;
+    vector<int64_t> pow{1}, hash{0};
 
-    long long sub(long long a, long long b) {
+    int64_t sub(int64_t a, int64_t b) {
         a -= b;
         if (a < 0)
             a += mod;
@@ -23,16 +23,16 @@ public:
         }
     }
 
-    long long substr(int l, int r) {
+    int64_t substr(int l, int r) {
         return sub(hash[r + 1], (__int128_t)hash[l] * pow[r - l + 1] % mod);
     }
 
-    long long merge(long long h1, long long h2, int len2) {
+    int64_t merge(int64_t h1, int64_t h2, int len2) {
         return ((__int128_t)h1 * pow[len2] + h2) % mod;
     }
 };
 mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
-long long dr_string::base = (mod >> 2) + rng() % (mod >> 1);
+int64_t dr_string::base = (mod >> 2) + rng() % (mod >> 1);
 
 void Main(...) {
     
