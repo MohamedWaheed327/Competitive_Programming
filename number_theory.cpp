@@ -2,13 +2,12 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// preprocess
 namespace sieve {
     vector<bool> is_prime(int N) {
         vector<int> _primes;
         vector<bool> _is_prime(N + 1, 1);
         _is_prime[0] = _is_prime[1] = 0;
-        for (long long i = 1; i <= N; i++) {
+        for (int64_t i = 1; i <= N; i++) {
             if (_is_prime[i]) {
                 _primes.push_back(i);
             }
@@ -29,7 +28,7 @@ namespace sieve {
         vector<int> _primes;
         vector<bool> _is_prime(N + 1, 1);
         _is_prime[0] = _is_prime[1] = 0;
-        for (long long i = 1; i <= N; i++) {
+        for (int64_t i = 1; i <= N; i++) {
             if (_is_prime[i]) {
                 _primes.push_back(i);
             }
@@ -46,15 +45,38 @@ namespace sieve {
         return _primes;
     }
 
-    vector<bool> segmented_sieve(long long l, long long r) {
+    vector<int> mobius(int N) {
+        vector<int> _primes, mob(N + 1, 1);
+        vector<bool> _is_prime(N + 1, 1);
+        _is_prime[0] = _is_prime[1] = 0;
+        for (int64_t i = 1; i <= N; i++) {
+            if (_is_prime[i]) {
+                mob[i] = -1;
+                _primes.push_back(i);
+            }
+            for (auto it : _primes) {
+                if (i * it > N) {
+                    break;
+                }
+                mob[i * it] = !!(i % it) * -mob[i];
+                _is_prime[i * it] = 0;
+                if (i % it == 0) {
+                    break;
+                }
+            }
+        }
+        return mob;
+    }
+
+    vector<bool> segmented_sieve(int64_t l, int64_t r) {
         vector<bool> primes_seg(r - l + 1, 1);
         if (l <= 1 && 1 <= r) {
             primes_seg[1 - l] = 0;
         }
         vector<int> prime = primes((int)sqrt(r));
         for (auto it : prime) {
-            long long start = l / it * it + (l % it ? it : 0);
-            for (long long i = start; i <= r; i += it) {
+            int64_t start = l / it * it + (l % it ? it : 0);
+            for (int64_t i = start; i <= r; i += it) {
                 if (i != it) {
                     primes_seg[i - l] = 0;
                 }
@@ -67,7 +89,7 @@ namespace sieve {
         vector<int> _primes;
         vector<int> _spf(N + 1, 0);
         iota(_spf.begin(), _spf.end(), 0);
-        for (long long i = 2; i <= N; i++) {
+        for (int64_t i = 2; i <= N; i++) {
             if (_spf[i] == i) {
                 _primes.push_back(i);
             }
@@ -132,64 +154,6 @@ namespace sieve {
         return _next_prime;
     }
 }
-
-// functions
-bool is_prime(long long n) {
-    if (n < 2) {
-        return 0;
-    }
-    for (long long i = 2; i <= n / i; i++) {
-        if (n % i == 0) {
-            return 0;
-        }
-    }
-    return 1;
-}
-
-template <class M>
-vector<M> prime_factors(M n) {
-    vector<M> ret;
-    for (long long i = 2; i <= n / i; i++) {
-        while (n % i == 0) {
-            n /= i;
-            ret.push_back(i);
-        }
-    }
-    if (n > 1) {
-        ret.push_back(n);
-    }
-    return ret;
-}
-
-template <class M>
-vector<M> divisors(M n) {
-    vector<M> ret;
-    for (long long i = 1; i <= n / i; i++) {
-        if (n % i == 0) {
-            ret.push_back(i);
-            if (i * i != n) {
-                ret.push_back(n / i);
-            }
-        }
-    }
-    return ret;
-}
-
-long long phi(long long n) { // n * (1 - 1/p)
-    long long ret = n;
-    for (long long i = 2; i <= n / i; i++) {
-        if (n % i == 0) {
-            while (n % i == 0)
-                n /= i;
-            ret -= ret / i;
-        }
-    }
-    if (n > 1)
-        ret -= ret / n;
-    return ret;
-}
-
-auto isPrime = sieve::is_prime(100);
 
 void Main(...) {
     
