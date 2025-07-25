@@ -2,82 +2,108 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-namespace combinatorics {
-    long long MOD = 1e9 + 7;
+template <const int mod = 998244353>
+struct mint {
+    int64_t value;
 
-    int size = 0;
-    vector<int> _fac = {1};
-    vector<int> _invfac = {1};
-    vector<int> _inv = {1};
+    mint(int64_t x = 0) {
+        value = x % mod;
+        if (value < 0) value += mod;
+    }
 
-    long long power(long long n, long long p) {
-        n %= MOD;
-        long long ret = 1;
+    mint power(int64_t p) {
+        mint ret = 1, base = value;
         while (p) {
-            if (p & 1) {
-                ret = ret * n % MOD;
-            }
-            n = n * n % MOD;
-            p >>= 1;
+            if (p & 1) ret *= base;
+            base *= base;
+            p /= 2;
         }
         return ret;
     }
 
+    friend mint operator+(mint a, mint b) { return mint(a.value + b.value); }
+    friend mint operator-(mint a, mint b) { return mint(a.value - b.value); }
+    friend mint operator*(mint a, mint b) { return mint(a.value * b.value); }
+    friend mint operator/(mint a, mint b) { return mint(a.value * b.power(mod - 2)); }
+    friend bool operator==(mint a, mint b) { return a.value == b.value; }
+    friend bool operator!=(mint a, mint b) { return a.value != b.value; }
+
+    mint &operator+=(mint x) { return *this = *this + x; }
+    mint &operator-=(mint x) { return *this = *this - x; }
+    mint &operator*=(mint x) { return *this = *this * x; }
+    mint &operator/=(mint x) { return *this = *this / x; }
+
+    friend istream &operator>>(istream &in, mint &a) {
+        in >> a.value, a = a.value;
+        return in;
+    }
+    friend ostream &operator<<(ostream &out, mint a) { return out << a.value; }
+};
+
+using Z = mint<(int)1e9 + 7>;
+
+namespace combinatorics {
+    const int64_t MOD = 1e9 + 7;
+    using Z = mint<MOD>;
+
+    vector<Z> _fac = {1, 1};
+    vector<Z> _inv = {1, 1};
+    vector<Z> _facinv = {1, 1};
+
     void init(int N) {
-        _fac.resize(N + 1);
-        _invfac.resize(N + 1);
-        _inv.resize(N + 1);
-
-        for (long long i = size + 1; i <= N; i++) {
-            _fac[i] = _fac[i - 1] * i % MOD;
+        for (int i = _fac.size(); i <= N; i++) {
+            _fac.push_back(_fac[i - 1] * i);
+            _inv.push_back(MOD - MOD / i * _inv[MOD % i]);
+            _facinv.push_back(_facinv[i - 1] * _inv[i]);
         }
-
-        _invfac[N] = power(_fac[N], MOD - 2);
-        for (int i = N; i >= size + 1; i--) {
-            _invfac[i - 1] = 1LL * _invfac[i] * i % MOD;
-            _inv[i] = 1LL * _invfac[i] * _fac[i - 1] % MOD;
-        }
-        size = N;
     }
 
-    long long fac(int n) {
-        if (n > size) {
-            init(2 * n);
-        }
+    Z fac(int n) {
+        init(n);
         return _fac[n];
     }
 
-    long long invfac(int n) {
-        if (n > size) {
-            init(2 * n);
-        }
-        return _invfac[n];
-    }
-
-    long long inv(int n) {
-        if (n > size) {
-            init(2 * n);
-        }
+    Z inv(int n) {
+        init(n);
         return _inv[n];
     }
 
-    long long npr(int n, int r) {
-        if (n < r) {
-            return 0;
+    Z facinv(int n) {
+        init(n);
+        return _facinv[n];
+    }
+
+    Z npr(int n, int r) {
+        if (n < r) return 0;
+        return fac(n) * facinv(n - r);
+    }
+
+    Z ncr(int n, int r) {
+        return npr(n, r) * facinv(r);
+    }
+
+    Z catalan(int n, int k = 0) {
+        return ncr(2 * n - k, n) * (k + 1) * inv(n + 1);
+    }
+
+    Z stars_and_bars(int star, int bar) { // **||**|*|||
+        return ncr(star + bar, star);
+    }
+
+    Z permutation_with_repetition(const vector<int> &frq) {
+        Z ret = fac(accumulate(frq.begin(), frq.end(), 0));
+        for (auto it : frq) {
+            ret *= facinv(it);
         }
-        return fac(n) * invfac(n - r) % MOD;
+        return ret;
     }
 
-    long long ncr(int n, int r) {
-        return npr(n, r) * invfac(r) % MOD;
-    }
-
-    long long catalan(int n) {
-        return ncr(2 * n, n) * inv(n + 1) % MOD;
-    }
-
-    long long stars_and_bars(int star, int bar) {
-        return ncr(star + bar - 1, star);
+    Z count_necklaces(int beads, Z colors) { // for (divisors) total += phi(d) * pow(k, n / d)
+        Z total = 0;
+        for (int rot = 0; rot < beads; rot++) {
+            total += colors.power(gcd(rot, beads));
+        }
+        return total / beads;
     }
 }
 using namespace combinatorics;
