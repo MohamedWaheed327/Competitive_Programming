@@ -40,8 +40,6 @@ struct mint {
     friend ostream &operator<<(ostream &out, mint a) { return out << a.value; }
 };
 
-using Z = mint<(int)1e9 + 7>;
-
 namespace combinatorics {
     const int64_t MOD = 1e9 + 7;
     using Z = mint<MOD>;
