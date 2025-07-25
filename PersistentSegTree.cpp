@@ -2,214 +2,144 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <int LX = 0, int RX = (int)1e9>
+/* if range assign, you can set opt to true */
+template <class node, int64_t LX = INT_MIN, int64_t RX = INT_MAX, bool opt = false>
 class seg_tree {
 private:
-    struct node {
-        int f = 0;
-        int left = -1, right = -1;
-
-        void apply(int lx, int rx, long long val = 0) {
-            f = val;
-        }
-
-        void merge(const node &a, const node &b) {
-            f = a.f + b.f;
-        }
-    };
-
-    inline void propagate(int x, int lx, int rx) {
-        // int mid = lx + rx >> 1;
-        // int left = seg[x].left;
-        // int right = seg[x].right;
-        // if (~seg[x].lazy) {
-        //     seg[left].apply(lx, mid, seg[x].lazy);
-        //     seg[right].apply(mid + 1, rx, seg[x].lazy);
-        //     seg[x].lazy = -1;
-        // }
-    }
-
-    int cur_time;
     vector<node> seg;
-    vector<int> roots;
+    vector<int> roots = {-1}, left, right;
 
     void create_node(int &x) {
         if (x == -1) {
             x = seg.size();
             seg.push_back(node());
+            left.push_back(-1);
+            right.push_back(-1);
         }
-    }
-
-    int new_node() {
-        seg.push_back(node());
-        return seg.size() - 1;
+        else if (!opt) {
+            int y = x;
+            x = seg.size();
+            seg.push_back(seg[y]);
+            left.push_back(left[y]);
+            right.push_back(right[y]);
+        }
     }
 
     template <class... M>
-    int update(int x, int lx, int rx, int l, int r, const M &...val) {
-        if (rx < l || r < lx) {
-            return x;
-        }
+    int update(int x, int64_t lx, int64_t rx, int64_t l, int64_t r, const M &...val) {
+        if (rx < l || r < lx) return x;
+
+        int nd = (opt ? -1 : x);
         if (l <= lx && rx <= r) {
-            int nd = new_node();
+            create_node(nd);
             seg[nd].apply(lx, rx, val...);
             return nd;
         }
-        create_node(seg[x].left);
-        create_node(seg[x].right);
-        propagate(x, lx, rx);
-        int mid = lx + rx >> 1;
-        int L = update(seg[x].left, lx, mid, l, r, val...);
-        int R = update(seg[x].right, mid + 1, rx, l, r, val...);
-        int nd = new_node();
-        seg[nd].merge(seg[L], seg[R]);
-        seg[nd].left = L, seg[nd].right = R;
+
+        int64_t mid = lx + rx >> 1;
+        create_node(left[x]);
+        create_node(right[x]);
+        seg[x].propagate(seg[left[x]], seg[right[x]], lx, rx, mid);
+
+        create_node(nd);
+        left[nd] = update(left[x], lx, mid, l, r, val...);
+        right[nd] = update(right[x], mid + 1, rx, l, r, val...);
+        seg[nd].merge(seg[left[nd]], seg[right[nd]]);
+
         return nd;
     }
 
-    node query(int x, int lx, int rx, int l, int r) {
+    node query(int x, int64_t lx, int64_t rx, int64_t l, int64_t r) {
         if (l <= lx && rx <= r) {
             return seg[x];
         }
-        create_node(seg[x].left);
-        create_node(seg[x].right);
-        propagate(x, lx, rx);
-        int mid = lx + rx >> 1;
-        int left = seg[x].left;
-        int right = seg[x].right;
+
+        int64_t mid = lx + rx >> 1;
+        create_node(left[x]);
+        create_node(right[x]);
+        seg[x].propagate(seg[left[x]], seg[right[x]], lx, rx, mid);
+
         if (r < mid + 1) {
-            return query(left, lx, mid, l, r);
+            return query(left[x], lx, mid, l, r);
         }
         if (mid < l) {
-            return query(right, mid + 1, rx, l, r);
+            return query(right[x], mid + 1, rx, l, r);
         }
         node ret;
-        ret.merge(query(left, lx, mid, l, r), query(right, mid + 1, rx, l, r));
+        ret.merge(query(left[x], lx, mid, l, r), query(right[x], mid + 1, rx, l, r));
         return ret;
     }
 
-    pair<int, node> node_find_first(int x, int lx, int rx, node *node_before, const auto &F) {
-        node cur_node = seg[x];
-        if (node_before != NULL) {
-            cur_node.merge(*node_before, seg[x]);
-        }
-        if (!F(cur_node)) {
-            return {-1, cur_node};
-        }
-        if (lx == rx) {
-            return {lx, cur_node};
-        }
-        create_node(seg[x].left);
-        create_node(seg[x].right);
-        propagate(x, lx, rx);
-        int mid = lx + rx >> 1;
-        int left = seg[x].left;
-        int right = seg[x].right;
-        pair<int, node> lft = node_find_first(left, lx, mid, node_before, F);
-        if (~lft.first) {
-            return lft;
-        }
-        return node_find_first(right, mid + 1, rx, &lft.second, F);
-    }
-
-    pair<int, node> find_first(int x, int lx, int rx, int l, int r, node *node_before, const auto &F) {
+    pair<int, node> find(int x, int64_t lx, int64_t rx, node *last, int64_t l, int64_t r, int dir, const auto &F) {
         if (l <= lx && rx <= r) {
-            return node_find_first(x, lx, rx, node_before, F);
+            node cur_node = seg[x];
+            if (last) {
+                dir ? cur_node.merge(*last, seg[x]) : cur_node.merge(seg[x], *last);
+            }
+            if (!F(cur_node)) return {-1, cur_node};
+            if (lx == rx) return {lx, cur_node};
         }
-        create_node(seg[x].left);
-        create_node(seg[x].right);
-        propagate(x, lx, rx);
-        int mid = lx + rx >> 1;
-        int left = seg[x].left;
-        int right = seg[x].right;
+
+        int64_t mid = lx + rx >> 1;
+        create_node(left[x]);
+        create_node(right[x]);
+        seg[x].propagate(seg[left[x]], seg[right[x]], lx, rx, mid);
+
         if (r < mid + 1) {
-            return find_first(left, lx, mid, l, r, node_before, F);
+            return find(left[x], lx, mid, last, l, r, dir, F);
         }
         if (mid < l) {
-            return find_first(right, mid + 1, rx, l, r, node_before, F);
+            return find(right[x], mid + 1, rx, last, l, r, dir, F);
         }
-        pair<int, node> lft = find_first(left, lx, mid, l, r, node_before, F);
-        if (~lft.first) {
-            return lft;
-        }
-        return find_first(right, mid + 1, rx, l, r, &lft.second, F);
-    }
-
-    pair<int, node> node_find_last(int x, int lx, int rx, node *node_before, const auto &F) {
-        node cur_node = seg[x];
-        if (node_before != NULL) {
-            cur_node.merge(seg[x], *node_before);
-        }
-        if (!F(cur_node)) {
-            return {-1, cur_node};
-        }
-        if (lx == rx) {
-            return {lx, cur_node};
-        }
-        create_node(seg[x].left);
-        create_node(seg[x].right);
-        propagate(x, lx, rx);
-        int mid = lx + rx >> 1;
-        int left = seg[x].left;
-        int right = seg[x].right;
-        pair<int, node> rgt = node_find_last(right, mid + 1, rx, node_before, F);
-        if (~rgt.first) {
-            return rgt;
-        }
-        return node_find_last(left, lx, mid, &rgt.second, F);
-    }
-
-    pair<int, node> find_last(int x, int lx, int rx, int l, int r, node *node_before, const auto &F) {
-        if (l <= lx && rx <= r) {
-            return node_find_last(x, lx, rx, node_before, F);
-        }
-        create_node(seg[x].left);
-        create_node(seg[x].right);
-        propagate(x, lx, rx);
-        int mid = lx + rx >> 1;
-        int left = seg[x].left;
-        int right = seg[x].right;
-        if (r < mid + 1) {
-            return find_last(left, lx, mid, l, r, node_before, F);
-        }
-        if (mid < l) {
-            return find_last(right, mid + 1, rx, l, r, node_before, F);
-        }
-        pair<int, node> rgt = find_last(right, mid + 1, rx, l, r, node_before, F);
-        if (~rgt.first) {
-            return rgt;
-        }
-        return find_last(left, lx, mid, l, r, &rgt.second, F);
+        auto [idx, nd] = (dir ? find(left[x], lx, mid, last, l, r, dir, F) : find(right[x], mid + 1, rx, last, l, r, dir, F));
+        if (~idx) return {idx, nd};
+        return dir ? find(right[x], mid + 1, rx, &nd, l, r, dir, F) : find(left[x], lx, mid, &nd, l, r, dir, F);
     }
 
 public:
-    seg_tree() {
-        seg.resize(1);
-        cur_time = -1;
+    seg_tree() { create_node(roots[0]); }
+
+    int cur_time() { return roots.size() - 1; }
+
+    void push_back(int time) {
+        roots.push_back(roots[time]);
     }
 
     template <class... M>
-    void insert(int l, int r, const M &...val) {
-        roots.push_back(0);
-        ++cur_time;
-        roots[cur_time] = update(roots[max(cur_time - 1, 0)], LX, RX, l, r, val...);
+    void update(int time, int64_t l, int64_t r, const M &...val) {
+        roots[time] = update(roots[time], LX, RX, l, r, val...);
     }
 
-    template <class... M>
-    void update(int l, int r, const M &...val) {
-        roots[cur_time] = update(roots[cur_time], LX, RX, l, r, val...);
-    }
-
-    node query(int time, int l, int r) {
+    node query(int time, int64_t l, int64_t r) {
         return query(roots[time], LX, RX, l, r);
     }
 
-    int find_first(int time, int l, int r, const auto &F) {
-        return find_first(roots[time], LX, RX, l, r, NULL, F).first;
+    int find_first(int time, int64_t l, int64_t r, const auto &F) {
+        return find(roots[time], LX, RX, nullptr, l, r, 1, F).first;
     }
 
-    int find_last(int time, int l, int r, const auto &F) {
-        return find_last(roots[time], LX, RX, l, r, NULL, F).first;
+    int find_last(int time, int64_t l, int64_t r, const auto &F) {
+        return find(roots[time], LX, RX, nullptr, l, r, 0, F).first;
+    }
+};
+
+struct node {
+    int64_t sum = 0;
+
+    void apply(int64_t lx, int64_t rx, int64_t val = 0) {
+        sum = val;
+    }
+
+    void merge(const node &a, const node &b) {
+        sum = a.sum + b.sum;
+    }
+
+    void propagate(node &left, node &right, int64_t lx, int64_t rx, int64_t mid) {
+        // if (lazy != -1) {
+        //     left.apply(lx, mid, lazy);
+        //     right.apply(mid + 1, rx, lazy);
+        //     lazy = -1;
+        // }
     }
 };
 
