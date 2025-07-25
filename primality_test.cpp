@@ -2,39 +2,28 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-long long mulmod(long long a, long long b, long long m) {
-    long long res = 0;
-    while (b > 0) {
-        if (b & 1)
-            res = ((m - res) > a) ? res + a : res - m + a;
-        b >>= 1;
-        a = ((m - a) > a) ? a + a : a - m + a;
-    }
-    return res;
-}
-
-long long power(long long n, long long p, long long mod) {
+int64_t power(int64_t n, int64_t p, int64_t mod) {
     n %= mod;
-    long long ret = 1;
+    int64_t ret = 1;
     while (p) {
         if (p & 1) {
-            ret = mulmod(ret, n, mod);
+            ret = (__int128_t)ret * n % mod;
         }
-        n = mulmod(n, n, mod);
+        n = (__int128_t)n * n % mod;
         p >>= 1;
     }
     return ret;
 }
 
-long long rand(long long l, long long r) {
-    mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
-    return rng() % (r - l + 1) + l;
+int64_t rand(int64_t l, int64_t r) {
+    static mt19937_64 rng(chrono::steady_clock::now().time_since_epoch().count());
+    return uniform_int_distribution<int64_t>(l, r)(rng);
 }
 
-bool prime(long long n) {
-    if (n <= 1)
-        return false;
-    for (int i = 1; i <= 10; i++) {
+bool is_prime(int64_t n) {
+    if (n <= 1) return false;
+    int itr = 10;
+    while (itr--) {
         if (power(rand(1, n - 1), n - 1, n) != 1) {
             return false;
         }
