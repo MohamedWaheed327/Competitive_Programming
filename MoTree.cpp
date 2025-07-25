@@ -2,12 +2,11 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-template <class M, bool val_on_edge = false>
+template <bool val_on_edge = false>
 class Mo_Tree {
 private:
     static inline int64_t hilbertOrder(int x, int y, int pow, int rotate) {
-        if (pow == 0)
-            return 0;
+        if (pow == 0) return 0;
         int hpow = 1 << (pow - 1);
         int seg = (x < hpow) ? ((y < hpow) ? 0 : 3) : ((y < hpow) ? 1 : 2);
         seg = (seg + rotate) & 3;
@@ -26,120 +25,89 @@ private:
         int64_t ord;
     };
 
-    int q;
-    vector<int> depth, flat, st, en, node_freq;
-    vector<vector<int>> anc;
-    vector<M> v;
+    LCA lca;
     vector<query> Q;
+    vector<int> tree, st, en, node_freq, v;
 
-    long long res = 0;
+    void add(int ind, int add) {
+        node_freq[tree[ind]] += add;
+        if (node_freq[tree[ind]] == 1) {
+            add_node(tree[ind]);
+        }
+        else {
+            remove_node(tree[ind]);
+        }
+    }
+
+    int64_t res = 0;
     void add_node(int node) {
-
     }
 
     void remove_node(int node) {
-
     }
 
-    long long calc(...) {
+    int64_t calc(...) {
         return res;
     }
 
-    void add(int ind) {
-        node_freq[flat[ind]]++;
-        if (node_freq[flat[ind]] == 1) {
-            add_node(flat[ind]);
-        }
-        else {
-            remove_node(flat[ind]);
-        }
-    }
-
-    void remove(int ind) {
-        node_freq[flat[ind]]--;
-        if (node_freq[flat[ind]] == 1) {
-            add_node(flat[ind]);
-        }
-        else {
-            remove_node(flat[ind]);
-        }
-    }
-
 public:
-    Mo_Tree(vector<vector<int>> &g, const vector<M> &v) {
-        q = 0;
-        this->v = v;
-        int n = (int)g.size() - 1;
-        depth.resize(n + 1), st.resize(n + 1);
-        en.resize(n + 1), node_freq.resize(n + 1);
-        anc.assign(n + 1, vector<int>(__lg(n) + 2, 0));
+    Mo_Tree(vector<vector<int>> &g, const vector<int> &v) : v(v), lca(g) {
+        st = en = node_freq = vector<int>(g.size());
 
-        function<void(int, int, int)> dfs = [&](int node, int p, int d) {
-            anc[node][0] = p;
-            depth[node] = d;
-            st[node] = flat.size();
-            flat.push_back(node);
+        function<void(int, int)> dfs = [&](int node, int p) {
+            st[node] = tree.size();
+            tree.push_back(node);
             for (auto it : g[node]) {
                 if (it != p) {
-                    dfs(it, node, d + 1);
+                    dfs(it, node);
                 }
             }
-            en[node] = flat.size();
-            flat.push_back(node);
+            en[node] = tree.size();
+            tree.push_back(node);
         };
-        dfs(1, 0, 0);
-
-        for (int j = 1; j <= __lg(n); ++j) {
-            for (int i = 1; i <= n; ++i) {
-                anc[i][j] = anc[anc[i][j - 1]][j - 1];
-            }
-        }
+        dfs(1, -1);
     }
 
-    int kth_anc(int node, int k) {
-        int ret = node;
-        for (int bit = (int)anc[ret].size() - 1; ~bit; --bit) {
-            if (k & (1 << bit)) {
-                ret = anc[ret][bit];
+    Mo_Tree(vector<vector<pair<int, int>>> &g) {
+        int n = g.size();
+        vector<vector<int>> _g(n);
+        for (int i = 0; i < n; ++i) {
+            for (auto [it, c] : g[i]) {
+                _g[i].push_back(it);
             }
         }
-        return ret;
-    }
 
-    int lca(int u, int v) {
-        if (depth[u] < depth[v]) {
-            swap(u, v);
-        }
-        u = kth_anc(u, depth[u] - depth[v]);
-        if (u == v) {
-            return u;
-        }
-        for (int bit = anc[0].size() - 1; ~bit; --bit) {
-            if (anc[u][bit] != anc[v][bit]) {
-                u = anc[u][bit];
-                v = anc[v][bit];
+        lca = LCA(_g);
+        st = en = node_freq = v = vector<int>(n);
+
+        function<void(int, int)> dfs = [&](int node, int p) {
+            st[node] = tree.size();
+            tree.push_back(node);
+            for (auto [it, c] : g[node]) {
+                if (it != p) {
+                    v[it] = c;
+                    dfs(it, node);
+                }
             }
-        }
-        return anc[u][0];
+            en[node] = tree.size();
+            tree.push_back(node);
+        };
+        dfs(1, -1);
     }
 
-    template <class... T>
-    void add_query(int u, int v, T &...x) {
+    void add_query(int u, int v) {
         if (st[u] > st[v]) {
             swap(u, v);
         }
-        int lc = lca(u, v), l, r, lc_ = -1;
-        if (lc == u || lc == v) {
-            l = st[u] + val_on_edge, r = st[v];
+        int lc = lca.lca(u, v), l = en[u], r = st[v];
+        if (lc == u) {
+            l = st[u] + val_on_edge, lc = -1;
         }
-        else {
-            l = en[u], r = st[v], lc_ = lc;
-        }
-        Q.push_back({l, r, q++, lc_, hilbertOrder(l, r, __lg(flat.size()) + 1, 0), x...});
+        Q.push_back({l, r, Q.size(), lc, hilbertOrder(l, r, __lg(tree.size()) + 1, 0)});
     }
 
-    void mo_process() {
-        vector<long long> ans(q);
+    vector<int64_t> get_ans() {
+        vector<int64_t> ans(Q.size());
 
         sort(Q.begin(), Q.end(), [&](query a, query b) {
             return a.ord < b.ord;
@@ -148,24 +116,20 @@ public:
         int l = 0, r = -1;
         for (auto [L, R, q_indx, lc, ord] : Q) {
             while (l > L)
-                add(--l);
+                add(--l, 1);
             while (r < R)
-                add(++r);
+                add(++r, 1);
             while (r > R)
-                remove(r--);
+                add(r--, -1);
             while (l < L)
-                remove(l++);
+                add(l++, -1);
 
-            if (~lc && !val_on_edge)
-                add_node(lc);
+            if (~lc && !val_on_edge) add_node(lc);
             ans[q_indx] = calc();
-            if (~lc && !val_on_edge)
-                remove_node(lc);
+            if (~lc && !val_on_edge) remove_node(lc);
         }
 
-        for (auto it : ans) {
-            cout << it << '\n';
-        }
+        return ans;
     }
 };
 
