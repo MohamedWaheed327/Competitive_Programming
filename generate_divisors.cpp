@@ -2,6 +2,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+const int N = 100;
+
 vector<int> calc(int N) {
     vector<int> _primes;
     vector<int> _spf(N + 1, 0);
@@ -23,7 +25,7 @@ vector<int> calc(int N) {
     return _spf;
 }
 
-vector<int> spf = calc(100);
+vector<int> spf = calc(N);
 vector<int> factors(int n) {
     vector<int> ret;
     int cur = n;
@@ -63,7 +65,6 @@ vector<int> divisors(int n) {
 }
 
 void Main(...) {
-    
 }
 /*
 
