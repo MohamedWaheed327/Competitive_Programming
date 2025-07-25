@@ -3,7 +3,7 @@
 using namespace std;
 
 struct hashLL {
-    long long operator()(long long x) const {
+    int64_t operator()(int64_t x) const {
         x = (x ^ (x >> 30)) * UINT64_C(0xbf58476d1ce4e5b9);
         x = (x ^ (x >> 27)) * UINT64_C(0x94d049bb133111eb);
         x = x ^ (x >> 31);
@@ -12,7 +12,7 @@ struct hashLL {
 };
 
 struct Hashmap {
-    typedef long long key_t;
+    typedef int64_t key_t;
     typedef int val_t;
     typedef unordered_map<key_t, val_t, hashLL> map_t;
 
