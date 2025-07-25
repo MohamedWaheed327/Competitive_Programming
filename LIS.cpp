@@ -2,51 +2,39 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+template <class node>
 class segment_tree {
 private:
-    struct node {
-        int mx;
-
-        void apply(int lx, int rx, int val) {
-            mx = val;
-        }
-
-        void merge(const node &a, const node &b) {
-            mx = max(a.mx, b.mx);
-        }
-    };
-
     int size;
     vector<node> seg;
 
-    template <class M>
-    void build(int x, int lx, int rx, const vector<M> &build_seg) {
+    template <class... M>
+    void build(int x, int lx, int rx, const vector<M> &...a) {
         if (lx == rx) {
-            seg[x].apply(lx, rx, build_seg[lx]);
-            return;
+            return seg[x].apply(lx, rx, a[lx]...);
         }
         int mid = lx + rx >> 1;
         int left = x + 1;
-        int right = x + (mid - lx + 1 << 1);
-        build(left, lx, mid, build_seg);
-        build(right, mid + 1, rx, build_seg);
+        int right = x + 2 * (mid - lx + 1);
+        build(left, lx, mid, a...);
+        build(right, mid + 1, rx, a...);
         seg[x].merge(seg[left], seg[right]);
     }
 
-    template <class M>
-    void update(int x, int lx, int rx, int l, int r, const M &value) {
+    template <class... M>
+    void modify(int x, int lx, int rx, int l, int r, const M &...value) {
         if (l <= lx && rx <= r) {
-            seg[x].apply(lx, rx, value);
-            return;
+            return seg[x].apply(lx, rx, value...);
         }
         int mid = lx + rx >> 1;
         int left = x + 1;
-        int right = x + (mid - lx + 1 << 1);
+        int right = x + 2 * (mid - lx + 1);
+        seg[x].propagate(seg[left], seg[right], lx, rx, mid);
         if (l <= mid) {
-            update(left, lx, mid, l, r, value);
+            modify(left, lx, mid, l, r, value...);
         }
-        if (r >= mid + 1) {
-            update(right, mid + 1, rx, l, r, value);
+        if (mid + 1 <= r) {
+            modify(right, mid + 1, rx, l, r, value...);
         }
         seg[x].merge(seg[left], seg[right]);
     }
@@ -57,38 +45,89 @@ private:
         }
         int mid = lx + rx >> 1;
         int left = x + 1;
-        int right = x + (mid - lx + 1 << 1);
-        node ret;
+        int right = x + 2 * (mid - lx + 1);
+        seg[x].propagate(seg[left], seg[right], lx, rx, mid);
         if (r < mid + 1) {
             return query(left, lx, mid, l, r);
         }
-        else if (mid < l) {
+        if (mid < l) {
             return query(right, mid + 1, rx, l, r);
         }
-        else {
-            ret.merge(query(left, lx, mid, l, r), query(right, mid + 1, rx, l, r));
-        }
+        node ret;
+        ret.merge(query(left, lx, mid, l, r), query(right, mid + 1, rx, l, r));
         return ret;
     }
 
-public:
-    template <class M>
-    segment_tree(const vector<M> &build_seg) {
-        size = build_seg.size();
-        seg.resize(2 * size - 1);
-        build(0, 0, size - 1, build_seg);
-    }
-
-    template <class M>
-    void update(int ind, const M &value) {
-        update(0, 0, size - 1, ind, ind, value);
-    }
-
-    int query(int l, int r) {
-        if (l > r) {
-            return 0;
+    pair<int, node> find(int x, int lx, int rx, node *last, int l, int r, int dir, const auto &F) {
+        if (l <= lx && rx <= r) {
+            node cur_node = seg[x];
+            if (last) {
+                dir ? cur_node.merge(*last, seg[x]) : cur_node.merge(seg[x], *last);
+            }
+            if (!F(cur_node)) return {-1, cur_node};
+            if (lx == rx) return {lx, cur_node};
         }
-        return query(0, 0, size - 1, l, r).mx;
+        int mid = lx + rx >> 1;
+        int left = x + 1;
+        int right = x + 2 * (mid - lx + 1);
+        seg[x].propagate(seg[left], seg[right], lx, rx, mid);
+        if (r < mid + 1) {
+            return find(left, lx, mid, last, l, r, dir, F);
+        }
+        if (mid < l) {
+            return find(right, mid + 1, rx, last, l, r, dir, F);
+        }
+        auto [idx, nd] = (dir ? find(left, lx, mid, last, l, r, dir, F) : find(right, mid + 1, rx, last, l, r, dir, F));
+        if (~idx) return {idx, nd};
+        return dir ? find(right, mid + 1, rx, &nd, l, r, dir, F) : find(left, lx, mid, &nd, l, r, dir, F);
+    }
+
+public:
+    template <class... M>
+    segment_tree(int n, M... x) : size(n), seg(2 * n) {
+        build(0, 0, size - 1, vector<M>(n, x)...);
+    }
+
+    template <class... M>
+    segment_tree(const vector<M> &...a) : size((a.size(), ...)), seg(2 * size) {
+        build(0, 0, size - 1, a...);
+    }
+
+    template <class... M>
+    void update(int l, int r, const M &...value) {
+        modify(0, 0, size - 1, l, r, value...);
+    }
+
+    node query(int l, int r) {
+        return query(0, 0, size - 1, l, r);
+    }
+
+    int find_first(int l, int r, const auto &F) {
+        return find(0, 0, size - 1, nullptr, l, r, 1, F).first;
+    }
+
+    int find_last(int l, int r, const auto &F) {
+        return find(0, 0, size - 1, nullptr, l, r, 0, F).first;
+    }
+};
+
+struct node {
+    int mx = 0;
+
+    void apply(int lx, int rx, int val) {
+        mx = val;
+    }
+
+    void merge(const node &a, const node &b) {
+        mx = max(a.mx, b.mx);
+    }
+
+    void propagate(node &left, node &right, int lx, int rx, int mid) {
+        // if (lazy != -1) {
+        //     left.apply(lx, mid, lazy);
+        //     right.apply(mid + 1, rx, lazy);
+        //     lazy = -1;
+        // }
     }
 };
 
@@ -108,16 +147,16 @@ vector<int> lis(vector<int> v) {
     auto real = compress(v);
     int n = v.size();
     vector<int> dp(n, 0);
-    segment_tree st(dp);
+    segment_tree<node> st(n, 0);
     vector<pair<int, int>> history;
 
     for (auto it : v) {
         history.push_back({it, dp[it]});
-        dp[it] = max(dp[it], st.query(0, it - 1) + 1);
-        st.update(it, dp[it]);
+        dp[it] = max(dp[it], (it ? st.query(0, it - 1).mx : 0) + 1);
+        st.update(it, it, dp[it]);
     }
 
-    long long mx = st.query(0, n - 1), last = LLONG_MAX;
+    int64_t mx = st.query(0, n - 1).mx, last = LLONG_MAX;
     vector<int> ret;
     for (int i = n - 1; ~i; i--) {
         if (mx == dp[v[i]] && last > v[i]) {
