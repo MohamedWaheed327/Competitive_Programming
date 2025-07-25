@@ -9,11 +9,10 @@ private:
         int l, r, q_indx;
     };
 
-    int q, SQ;
     vector<M> v;
     vector<query> Q;
 
-    long long res = 0;
+    int64_t res = 0;
     void add(int ind) {
         res += v[ind];
     }
@@ -22,50 +21,42 @@ private:
         res -= v[ind];
     }
 
-    long long calc(...) {
+    int64_t calc(...) {
         return res;
     }
 
 public:
-    MO(const vector<M> &v) {
-        q = 0;
-        this->v = v;
-        SQ = sqrt(v.size());
+    MO(const vector<M> &v) : v(v) {}
+
+    void add_query(int l, int r) {
+        Q.push_back({l, r, Q.size()});
     }
 
-    template <class... T>
-    void add_query(int l, int r, T &...x) {
-        Q.push_back({l, r, q++, x...});
-    }
-
-    void mo_process() {
-        vector<long long> ans(q);
-
+    vector<int64_t> get_ans() {
+        int SQ = sqrt(v.size());
         sort(Q.begin(), Q.end(), [&](query a, query b) {
             return pair{a.l / SQ, a.r} < pair{b.l / SQ, b.r};
         });
 
-        int l = 1, r = 0;
+        vector<int64_t> ans(Q.size());
+        int l = 0, r = -1;
         for (auto [L, R, q_indx] : Q) {
-            while (r > R)
-                remove(r--);
             while (r < R)
                 add(++r);
             while (l > L)
                 add(--l);
+            while (r > R)
+                remove(r--);
             while (l < L)
                 remove(l++);
             ans[q_indx] = calc();
         }
 
-        for (auto it : ans) {
-            cout << it << '\n';
-        }
+        return ans;
     }
 };
 
 void Main(...) {
-    
 }
 /*
 
