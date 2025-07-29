@@ -153,7 +153,7 @@ public:
         sg = segment_tree<node>(vector<int64_t>(a.begin(), a.end()));
     }
 
-    void update(int l, int r, char val) {
+    void update(int l, int r, int64_t val) {
         sg.update(l, r, val);
     }
 
