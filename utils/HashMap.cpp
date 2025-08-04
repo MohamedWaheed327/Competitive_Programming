@@ -22,7 +22,6 @@ struct Hashmap {
     Hashmap() {
         srand(time(0));
         toXor = rand();
-
         m.reserve(4096);
         m.max_load_factor(0.25);
     }
@@ -58,3 +57,4 @@ signed main() {
         Main(i), cout << '\n';
     }
 }
+
