@@ -2,51 +2,42 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+
 template <int LOG = 62>
 class binary_trie {
 private:
     struct node {
-        int cnt = 0, child[2] = {-1, -1};
+        int64_t cnt = 0;
+        int child[2] = {-1, -1};
     };
     vector<node> tree = vector<node>(1);
+
+    bool valid(int node) { return node != -1 && 0 < tree[node].cnt; }
 
 public:
     void insert(int64_t x, int cnt = 1) {
         int cur = 0;
         tree[cur].cnt += cnt;
         for (int bit = LOG; ~bit; --bit) {
-            int to = !!(x & (1LL << bit));
+            int to = (x >> bit) & 1;
             if (tree[cur].child[to] == -1) {
                 tree[cur].child[to] = tree.size();
-                tree.emplace_back(node());
+                tree.emplace_back();
             }
             cur = tree[cur].child[to];
             tree[cur].cnt += cnt;
         }
     }
 
-    void erase(int64_t x) {
-        int cur = 0;
-        for (int bit = LOG; ~bit; --bit) {
-            int to = !!(x & (1LL << bit));
-            if (tree[cur].child[to] == -1 || tree[tree[cur].child[to]].cnt == 1) {
-                tree[cur].child[to] = -1;
-                return;
-            }
-            cur = tree[cur].child[to];
-            tree[cur].cnt--;
-        }
-    }
-
     int64_t max_xor(int64_t x) {
         int64_t cur = 0, ret = 0;
         for (int bit = LOG; ~bit; bit--) {
-            int to = !!(x & (1LL << bit));
-            if (~tree[cur].child[!to]) {
+            int to = (x >> bit) & 1;
+            if (valid(tree[cur].child[!to])) {
                 cur = tree[cur].child[!to];
                 ret += !to * (1LL << bit);
             }
-            else {
+            else if (valid(tree[cur].child[to])) {
                 cur = tree[cur].child[to];
                 ret += to * (1LL << bit);
             }
@@ -55,7 +46,29 @@ public:
     }
 
     int64_t min_xor(int64_t x) {
-        return -1 ^ max_xor(x ^ -1);
+        return ~max_xor(~x);
+    }
+
+    int64_t xor_less_than_k(int64_t x, int64_t k) {
+        int64_t cur = 0, ret = 0;
+        for (int bit = LOG; ~bit; --bit) {
+            if (!valid(cur)) return ret;
+            int to = (x >> bit) & 1;
+            if ((k >> bit) & 1) {
+                if (valid(tree[cur].child[to])) {
+                    ret += tree[tree[cur].child[to]].cnt;
+                }
+                cur = tree[cur].child[!to];
+            }
+            else {
+                cur = tree[cur].child[to];
+            }
+        }
+        return ret;
+    }
+
+    int64_t xor_greater_equal_to_k(int64_t x, int64_t k) {
+        return tree[0].cnt - xor_less_than_k(x, k);
     }
 };
 
