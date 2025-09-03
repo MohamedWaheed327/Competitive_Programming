@@ -11,7 +11,9 @@ public:
     vector<int64_t> dis;
     const int64_t INF = 1e18;
 
-    BFS(vector<vector<int>> &g, vector<int> src = {base}) : dis(g.size(), INF), par(g.size(), -1) {
+    BFS(vector<vector<int>> &g, vector<int> src = {base}) {
+        dis=vector<int64_t>(g.size(), INF);
+        par=vector<int>(g.size(), -1);
         queue<int> q;
         for (auto it : src) {
             dis[it] = 0;
