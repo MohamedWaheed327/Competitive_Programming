@@ -11,7 +11,9 @@ public:
     const int64_t INF = 1e18;
     vector<int64_t> dis;
 
-    dijkstra(vector<vector<pair<int, int>>> &g, vector<int> src = {base}) : dis(g.size(), INF), par(g.size(), -1) {
+    dijkstra(vector<vector<pair<int, int>>> &g, vector<int> src = {base}) {
+        dis=vector<int64_t>(g.size(), INF);
+        par=vector<int>(g.size(), -1);
         priority_queue<pair<int64_t, int>, vector<pair<int64_t, int>>, greater<>> pq;
         for (auto it : src) {
             dis[it] = 0;
